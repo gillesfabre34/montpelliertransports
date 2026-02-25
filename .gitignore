@@ -1,0 +1,66 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+.env/
+
+# Environment / secrets
+*.env
+.env.local
+.env.*.local
+
+# Logs & debug
+logs/
+*.log
+*.out
+*.err
+
+# Jupyter / IPython
+.ipynb_checkpoints
+
+# macOS
+.DS_Store
+
+# VSCode / Editor
+.vscode/
+.idea/
+
+# Python packaging
+build/
+dist/
+*.egg-info/
+
+# Spark / Hadoop
+spark-warehouse/
+metastore_db/
+.sparkStaging/
+derby.log
+
+# Airflow
+airflow/airflow.db
+airflow/airflow.cfg
+airflow/logs/
+airflow/*.pid
+
+# dbt
+dbt/target/
+dbt/logs/
+
+# PostgreSQL / data
+data/
+*.db
+
+# Docker
+**/.dockerignore
+docker-compose.override.yml
+
+# Coverage / test
+.pytest_cache/
+.coverage
+htmlcov/
+
