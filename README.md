@@ -9,7 +9,7 @@ An end-to-end real-time data platform for Montpellier public transport data, fro
 **Build a real-time data platform that:**
 
 - **Ingests** public transport GTFS-RT data continuously  
-- **Streams** events through **Kafka**  
+- **Streams** events through **Kafka** (Kraft mode) 
 - **Processes** them using **PySpark Structured Streaming**  
 - **Stores** them in **PostgreSQL (Azure)**  
 - **Models** analytics-ready datasets using **dbt**  
