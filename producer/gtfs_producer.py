@@ -9,7 +9,7 @@ import requests
 from confluent_kafka import Producer
 from google.transit import gtfs_realtime_pb2
 
-from producer.config import (
+from config import (
     GTFS_RT_SOURCE,
     GTFS_RT_VEHICLE_POSITIONS_URL,
     KAFKA_BOOTSTRAP_SERVERS,
