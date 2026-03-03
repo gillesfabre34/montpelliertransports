@@ -3,11 +3,11 @@ from rich import print
 from collections import defaultdict, Counter
 
 vehicle_positions = [
-    {"vehicle_id": "V1", "route": "L1", "speed": 32, "delay": 5},
-    {"vehicle_id": "V2", "route": "L1", "speed": 28, "delay": -2},
-    {"vehicle_id": "V3", "route": "L2", "speed": 41, "delay": 0},
-    {"vehicle_id": "V4", "route": "L3", "speed": 25, "delay": 12},
-    {"vehicle_id": "V5", "route": "L2", "speed": 38, "delay": 3},
+    {"vehicle_id": "V1", "route": "L1", "speed": 32, "delay": 5,  "type": "bus"},
+    {"vehicle_id": "V2", "route": "L1", "speed": 28, "delay": -2, "type": "tram"},
+    {"vehicle_id": "V3", "route": "L2", "speed": 41, "delay": 0,  "type": "bus"},
+    {"vehicle_id": "V4", "route": "L3", "speed": 25, "delay": 12, "type": "metro"},
+    {"vehicle_id": "V5", "route": "L2", "speed": 38, "delay": 3,  "type": "tram"},
 ]
 
 
@@ -55,10 +55,27 @@ def vehicles_sorted_by_speed(vehicles: list):
     return sorted(vehicles, key=lambda v: v["speed"], reverse=True)
 
 
+def vehicles_grouped_by_type(vehicles: list):
+    dict_types = defaultdict(list)
+    for v in vehicles:
+        dict_types[v["type"]].append(v)
+    return dict(dict_types)
+
+
+def fastest_vehicle_by_route(vehicles: list):
+    fastest = {}
+    for v in vehicles:
+        route = v["route"]
+        if route not in fastest or fastest[route]["speed"] < v["speed"]: fastest[route] = v
+    return fastest
+
+
 # late_vehicles = get_late_vehicles(vehicle_positions)
 # print(f"Speed averages: ", average_speed_by_route(vehicle_positions))
 # print(f"Vehicles by route: ", vehicles_by_route(vehicle_positions))
 # print(f"Flatten vehicles : ", flatten_vehicles(vehicles_by_route(vehicle_positions)))
 # print(f"Count vehicles by route : ", count_vehicles_by_route(vehicle_positions))
 # print(f"Delayed vehicles : ", delayed_vehicles(vehicle_positions))
-print(f"Vehicles sorted by speed : ", vehicles_sorted_by_speed(vehicle_positions))
+# print(f"Vehicles sorted by speed : ", vehicles_sorted_by_speed(vehicle_positions))
+# print(f"Vehicles grouped by type : ", vehicles_grouped_by_type(vehicle_positions))
+print(f"Fastest vehicles by route : ", fastest_vehicle_by_route(vehicle_positions))
