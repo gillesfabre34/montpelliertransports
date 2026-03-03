@@ -1,3 +1,7 @@
 confluent-kafka>=2.3.0
 gtfs-realtime-bindings>=1.0.0
 requests>=2.28.0
+
+python-dotenv~=1.2.1
+pyspark~=4.0.2
+rich~=14.3.3
