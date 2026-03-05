@@ -22,10 +22,10 @@ def salt_events(events: list[dict], salt_factor: int) -> list[dict]:
         new_event = e.copy()
         if e["user_id"] in skews:
             new_event["user_id"] += f"#{str(randint(0, salt_factor - 1))}"
-        print(f"new_user_id {new_event}")
+        # print(f"new_user_id {new_event}")
         result.append(new_event)
 
     return result
 
 
-print(salt_events(events, 3))
+# print(salt_events(events, 3))
