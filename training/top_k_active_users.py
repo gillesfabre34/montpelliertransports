@@ -32,16 +32,12 @@ def top_k_active_users(events: list[dict], k: int) -> list[tuple[str, int]]:
 
     for e in events:
         users[e["user_id"]] += 1
-    print(f"users", users)
 
     for user_id, count in users.items():
-        print(f"user_id", user_id)
         if len(result) < k:
             heapq.heappush(result, [count, user_id])
         elif result[0][0] < count:
             heapq.heappushpop(result, [count, user_id])
-
-        print(f"result", result)
 
     sorted_heap = sorted(result, key=lambda x: -x[0])
     return [(r[1], r[0]) for r in sorted_heap]
