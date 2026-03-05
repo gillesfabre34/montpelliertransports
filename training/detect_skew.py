@@ -1,7 +1,6 @@
 from collections import defaultdict
 from rich import print
-from typing import List, Dict
-import heapq
+
 
 events = [
     {"event_id": "e1", "user_id": "u1"},
@@ -27,4 +26,4 @@ def detect_skew(events: list[dict], threshold: float) -> list[str]:
     return result
 
 
-print(detect_skew(events, 0.4))
+# print(detect_skew(events, 0.4))
