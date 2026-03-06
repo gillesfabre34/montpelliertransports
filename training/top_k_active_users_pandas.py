@@ -15,7 +15,7 @@ events = [
 
 def top_k_active_users(events: list[dict], k: int) -> pd.DataFrame:
     df = pd.DataFrame(events)\
-        .groupby(["user_id"])\
+        .groupby("user_id")\
         .size()\
         .reset_index(name="event_count")\
         .sort_values(by="event_count", ascending=False)\
