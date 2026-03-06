@@ -26,7 +26,7 @@ events = [
 ]
 
 
-def top_k_active_users(events: list[dict], k: int) -> list[tuple[str, int]]:
+def top_k_active_users_pandas(events: list[dict], k: int) -> list[tuple[str, int]]:
     result = []
     users = defaultdict(int)
 
@@ -43,4 +43,4 @@ def top_k_active_users(events: list[dict], k: int) -> list[tuple[str, int]]:
     return [(r[1], r[0]) for r in sorted_heap]
 
 
-print(top_k_active_users(events, 2))
+print(top_k_active_users_pandas(events, 2))
