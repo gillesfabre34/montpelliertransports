@@ -1,3 +1,7 @@
+"""
+Global top-K: the K records with the largest value (e.g. the K most active users).
+Concept: heap of size K, heappushpop to keep only the K largest.
+"""
 from collections import defaultdict
 from rich import print
 import heapq
@@ -26,21 +30,19 @@ events = [
 ]
 
 
-def top_k_active_users_pandas(events: list[dict], k: int) -> list[tuple[str, int]]:
-    result = []
+def top_k_global_heap(events: list[dict], k: int) -> list[tuple[str, int]]:
     users = defaultdict(int)
-
     for e in events:
         users[e["user_id"]] += 1
 
+    heap: list[tuple[int, str]] = []
     for user_id, count in users.items():
-        if len(result) < k:
-            heapq.heappush(result, [count, user_id])
-        elif result[0][0] < count:
-            heapq.heappushpop(result, [count, user_id])
+        if len(heap) < k:
+            heapq.heappush(heap, (count, user_id))
+        elif count > heap[0][0]:
+            heapq.heappushpop(heap, (count, user_id))
 
-    sorted_heap = sorted(result, key=lambda x: -x[0])
-    return [(r[1], r[0]) for r in sorted_heap]
+    return sorted(((u, c) for c, u in heap), key=lambda x: x[1], reverse=True)
 
 
-print(top_k_active_users_pandas(events, 2))
+print(top_k_global_heap(events, 2))

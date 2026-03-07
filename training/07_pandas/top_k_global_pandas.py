@@ -1,3 +1,6 @@
+"""
+Pandas: global top-K (e.g. the K most active users) with groupby + size + sort + head.
+"""
 import pandas as pd
 from rich import print
 
@@ -14,13 +17,14 @@ events = [
 
 
 def top_k_active_users(events: list[dict], k: int) -> pd.DataFrame:
-    df = pd.DataFrame(events)\
-        .groupby("user_id")\
-        .size()\
-        .reset_index(name="event_count")\
-        .sort_values(by="event_count", ascending=False)\
+    return (
+        pd.DataFrame(events)
+        .groupby("user_id")
+        .size()
+        .reset_index(name="event_count")
+        .sort_values(by="event_count", ascending=False)
         .head(k)
-    return df
+    )
 
 
 print(top_k_active_users(events, 2))

@@ -1,4 +1,7 @@
-from collections import defaultdict
+"""
+Hash join: join orders and users on user_id to produce rows (order + name).
+Concept: dict as index, scan orders with lookup.
+"""
 from rich import print
 
 users = [
@@ -7,7 +10,6 @@ users = [
     {"user_id": "U3", "name": "Charlie"},
     {"user_id": "U4", "name": "David"},
 ]
-
 orders = [
     {"order_id": "O1", "user_id": "U2", "amount": 100},
     {"order_id": "O2", "user_id": "U1", "amount": 200},
@@ -16,22 +18,18 @@ orders = [
 ]
 
 
-def match_users_orders(users: list[dict], orders: list[dict]) -> list[dict]:
+def join_orders_with_users(users: list[dict], orders: list[dict]) -> list[dict]:
     result = []
-    user_dict = {}
-    for user in users:
-        user_dict[user["user_id"]] = {
-            "name": user["name"],
-        }
+    user_dict = {u["user_id"]: u["name"] for u in users}
     for order in orders:
-        user_info = user_dict.get(order["user_id"])
+        name = user_dict.get(order["user_id"])
         result.append({
             "user_id": order["user_id"],
             "order_id": order["order_id"],
-            "name": user_dict[order["user_id"]]["name"] if user_info else None,
+            "name": name,
             "amount": order["amount"]
         })
     return result
 
 
-print(match_users_orders(users, orders))
+print(join_orders_with_users(users, orders))

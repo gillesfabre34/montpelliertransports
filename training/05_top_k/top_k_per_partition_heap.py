@@ -1,3 +1,7 @@
+"""
+Top-K per partition: for each country, the K most ordered products.
+Concept: join user→country, groupby (country, product), heap per country.
+"""
 from collections import defaultdict
 from rich import print
 import heapq
@@ -22,34 +26,24 @@ orders = [
 
 
 def top_k_products_by_country(users: list[dict], orders: list[dict], k: int) -> dict:
-    users_by_country = {}
+    users_by_country = {u["user_id"]: u["country"] for u in users}
+    products_by_country: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
 
-    for user in users:
-        users_by_country[user["user_id"]] = user["country"]
-
-    result = {}
-    products_by_country = defaultdict(lambda: defaultdict(int))
     for o in orders:
-        product = o["product"]
         country = users_by_country.get(o["user_id"])
         if not country:
             continue
-        products_by_country[country][product] += 1
+        products_by_country[country][o["product"]] += 1
 
-    for country in products_by_country:
-        print(f"{country}: ")
-        heap = []
-        for product, count in products_by_country[country].items():
-            print(f"{product} : {count}")
+    result = {}
+    for country, product_counts in products_by_country.items():
+        heap: list[tuple[int, str]] = []
+        for product, count in product_counts.items():
             if len(heap) < k:
-                heapq.heappush(heap, [count, product])
+                heapq.heappush(heap, (count, product))
             elif count > heap[0][0]:
-                heapq.heappushpop(heap, [count, product])
-
-        print(f"heap", heap)
-        sorted_heap = sorted(heap, reverse=True)
-        result[country] = [(h[1], h[0]) for h in sorted_heap]
-
+                heapq.heappushpop(heap, (count, product))
+        result[country] = [(p, c) for c, p in sorted(heap, reverse=True)]
     return result
 
 

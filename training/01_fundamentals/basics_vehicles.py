@@ -1,3 +1,7 @@
+"""
+Basics: filtering, manual groupby, defaultdict, Counter, sort, max per group.
+Several small patterns on the same dataset (vehicles).
+"""
 from statistics import mean
 from rich import print
 from collections import defaultdict, Counter
@@ -66,16 +70,10 @@ def fastest_vehicle_by_route(vehicles: list):
     fastest = {}
     for v in vehicles:
         route = v["route"]
-        if route not in fastest or fastest[route]["speed"] < v["speed"]: fastest[route] = v
+        if route not in fastest or fastest[route]["speed"] < v["speed"]:
+            fastest[route] = v
     return fastest
 
 
-# late_vehicles = get_late_vehicles(vehicle_positions)
-# print(f"Speed averages: ", average_speed_by_route(vehicle_positions))
-# print(f"Vehicles by route: ", vehicles_by_route(vehicle_positions))
-# print(f"Flatten vehicles : ", flatten_vehicles(vehicles_by_route(vehicle_positions)))
-# print(f"Count vehicles by route : ", count_vehicles_by_route(vehicle_positions))
-# print(f"Delayed vehicles : ", delayed_vehicles(vehicle_positions))
-# print(f"Vehicles sorted by speed : ", vehicles_sorted_by_speed(vehicle_positions))
-# print(f"Vehicles grouped by type : ", vehicles_grouped_by_type(vehicle_positions))
-print(f"Fastest vehicles by route : ", fastest_vehicle_by_route(vehicle_positions))
+if __name__ == "__main__":
+    print("Fastest vehicles by route:", fastest_vehicle_by_route(vehicle_positions))

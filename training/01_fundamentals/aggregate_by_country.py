@@ -1,3 +1,7 @@
+"""
+Aggregation (manual groupby): group by key (country), count, sum, deduplicate.
+Concept: defaultdict, set for unique, loop.
+"""
 from collections import defaultdict
 from rich import print
 
@@ -30,4 +34,5 @@ def aggregate_by_country(orders: list[dict]) -> dict:
         }
     return final_result
 
-print(f"Result:", aggregate_by_country(orders))
+
+print("Result:", aggregate_by_country(orders))

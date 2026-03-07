@@ -1,8 +1,9 @@
-from collections import defaultdict
+"""
+Pandas: top-K per partition (per country, the K most ordered products).
+Merge users + orders, groupby (country, product), size, then groupby country + head(k).
+"""
 from rich import print
-import heapq
 import pandas as pd
-from pandas.api.typing import Rolling
 
 users = [
     {"user_id": "u1", "country": "FR"},
@@ -10,7 +11,6 @@ users = [
     {"user_id": "u3", "country": "US"},
     {"user_id": "u4", "country": "DE"},
 ]
-
 orders = [
     {"order_id": "o1", "user_id": "u1", "product": "p1"},
     {"order_id": "o2", "user_id": "u2", "product": "p2"},
@@ -25,15 +25,13 @@ orders = [
 def top_k_products_by_country(users: list[dict], orders: list[dict], k: int) -> pd.DataFrame:
     df_users = pd.DataFrame(users)
     df_orders = pd.DataFrame(orders)
-
     return (
-        df_users
-        .merge(df_orders, how="outer", on="user_id")
+        df_users.merge(df_orders, how="outer", on="user_id")
         .groupby(["country", "product"])
         .size()
         .rename("order_count")
         .reset_index()
-        .sort_values(["country", "order_count"], ascending=[True, False])\
+        .sort_values(["country", "order_count"], ascending=[True, False])
         .groupby("country")
         .head(k)
         .reset_index(drop=True)

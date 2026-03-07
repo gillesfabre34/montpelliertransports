@@ -11,8 +11,8 @@ An end-to-end real-time data platform for Montpellier public transport data, fro
 - **Ingests** public transport GTFS-RT data continuously  
 - **Streams** events through **Kafka** (Kraft mode) 
 - **Processes** them using **PySpark Structured Streaming**  
-- **Stores** them in **PostgreSQL (Azure)**  
-- **Models** analytics-ready datasets using **dbt**  
+- **Stores** and models analytics-ready datasets on **Databricks** (Delta Lake)  
+- **Uses** **pandas** for exploration, prototyping and local transformations  
 - **Orchestrates** pipelines with **Airflow**  
 - **Exposes** a clean analytics layer for BI tools  
 
@@ -44,9 +44,8 @@ GTFS-RT API (Montpellier)
         ↓
 PySpark Structured Streaming
         ↓
- PostgreSQL (Azure)
-        ↓
-        dbt
+     Databricks
+  (Delta Lake / Spark)
         ↓
    BI / Dashboard
 ```
@@ -55,16 +54,28 @@ PySpark Structured Streaming
 
 ---
 
+## 📍 Où on en est
+
+**État actuel du projet :**
+
+- ✅ **Kafka** fonctionne : le producer Python envoie bien les événements GTFS-RT sur les topics.
+- ✅ **Spark** reçoit les événements : le flux est consommé par PySpark Structured Streaming depuis Kafka.
+
+**À venir :** persistance vers Databricks (Delta Lake), modélisation Bronze/Silver/Gold, orchestration Airflow, couche analytics.
+
+---
+
 ## 🔧 Tech Stack
 
 ### ☁️ Cloud
 
 - Microsoft Azure  
-  - Azure Database for PostgreSQL – Flexible Server (free tier for 12 months)
+  - **Databricks** (Azure Databricks) – lakehouse, Spark et Delta Lake
 
-### 🗄 Database
+### 🗄 Stockage & traitement données
 
-- PostgreSQL (local for development, Azure for cloud deployment)
+- **Databricks** (Delta Lake pour le stockage, Spark/PySpark pour le traitement et la modélisation).  
+  _Contrairement à PostgreSQL (base SQL), Databricks est une plateforme lakehouse (Spark, Delta Lake) dédiée à l’analytique et au big data._
 
 ### 📡 Streaming Layer
 
@@ -77,18 +88,14 @@ PySpark Structured Streaming
 - `trip_updates`  
 - `alerts`  
 
-### 🔥 Processing
+### 🔥 Processing & Analytics
 
-- Apache Spark  
-- PySpark Structured Streaming  
+- Apache Spark / **PySpark** (Structured Streaming + batch pour la modélisation Bronze → Silver → Gold)  
+- **pandas** (exploration, prototypes, tests, traitements légers)
 
 ### 🐍 Programming Language
 
-- Python (core language across the platform)
-
-### 📊 Analytics Modeling
-
-- dbt (running on PostgreSQL)
+- Python (langage principal sur toute la plateforme)
 
 ### 🛫 Orchestration
 
@@ -125,7 +132,7 @@ Spark job written in Python that:
 - Handles late events  
 - Applies window aggregations  
 - Performs data cleaning and normalization  
-- Writes structured results to PostgreSQL  
+- Writes structured results to **Databricks** (Delta Lake)  
 
 **Key concepts:**
 
@@ -154,8 +161,7 @@ Pandas is used for:
 Airflow DAGs written in Python handle:
 
 - Ingestion scheduling  
-- Spark job execution  
-- dbt runs  
+- Spark job execution (sur Databricks)  
 - Data quality checks  
 - Alerting  
 
@@ -213,22 +219,18 @@ project/
 │   ├── gtfs_producer.py
 │   └── config.py
 │
-├── spark/
+├── spark/   (ou jobs Databricks)
 │   ├── stream_processor.py
-│   └── schemas.py
+│   ├── schemas.py
+│   ├── bronze/
+│   ├── silver/
+│   └── gold/
 │
 ├── airflow/
 │   └── dags/
 │       ├── ingestion_dag.py
 │       ├── processing_dag.py
-│       └── dbt_dag.py
-│
-├── dbt/
-│   ├── models/
-│   │   ├── bronze/
-│   │   ├── silver/
-│   │   └── gold/
-│   └── dbt_project.yml
+│       └── databricks_dag.py
 │
 ├── docker-compose.yml
 ├── requirements.txt
@@ -242,9 +244,9 @@ project/
 ### Phase 1 – Local Setup
 
 - Kafka (Docker)  
-- Spark (Docker)  
+- Spark (Docker) ou environnement local PySpark  
 - Airflow (Docker)  
-- Local PostgreSQL  
+- **pandas** pour l’exploration et les prototypes  
 - Working Python producer  
 
 ### Phase 2 – Streaming Pipeline
@@ -252,20 +254,21 @@ project/
 - Reliable Spark streaming job  
 - Schema management  
 - Error handling  
-- Writing to PostgreSQL  
+- Writing to **Databricks** (Delta Lake)  
 
 ### Phase 3 – Cloud Deployment
 
-- PostgreSQL on Azure  
+- **Databricks** sur Azure  
 - Secure connections  
 - Deployment strategy  
 
-### Phase 4 – Analytics Layer
+### Phase 4 – Analytics Layer (PySpark)
 
-- dbt models (Bronze → Silver → Gold)  
+- Modèles PySpark Bronze → Silver → Gold (sur Databricks)  
 - Tests  
 - Documentation  
 - Data quality checks  
+- **pandas** pour les tests et l’analyse exploratoire  
 
 ### Phase 5 – Advanced
 

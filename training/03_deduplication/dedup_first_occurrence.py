@@ -1,5 +1,8 @@
+"""
+Simple deduplication: keep the first occurrence of each event_id (arrival order).
+Concept: set to track seen ids, single pass.
+"""
 from rich import print
-
 
 events = [
     {"event_id": "E1", "user_id": "U1", "timestamp": 1000, "event_type": "click"},
@@ -10,13 +13,14 @@ events = [
 ]
 
 
-def deduplicate_events(events: list[dict]) -> list[dict]:
-    event_ids = set()
+def deduplicate_first_occurrence(events: list[dict]) -> list[dict]:
+    seen = set()
     result = []
     for event in events:
-        if event["event_id"] not in event_ids:
+        if event["event_id"] not in seen:
             result.append(event)
-            event_ids.add(event["event_id"])
+            seen.add(event["event_id"])
     return result
 
-print(deduplicate_events(events))
+
+print(deduplicate_first_occurrence(events))

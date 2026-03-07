@@ -1,5 +1,8 @@
+"""
+Hash join / enrichment: join orders with users to add name and country.
+Concept: dict as index (user_id → info), then enrich each order.
+"""
 from rich import print
-from collections import defaultdict
 
 users = [
     {"user_id": "U1", "name": "Alice", "country": "FR"},
@@ -13,24 +16,19 @@ orders = [
 ]
 
 
-def attach_user_info(orders: list[dict], users: list[dict]) -> list[dict]:
+def enrich_orders_with_users(orders: list[dict], users: list[dict]) -> list[dict]:
     result = []
-    user_dict = {}
-    for user in users:
-        user_dict[user["user_id"]] = {
-            "name": user["name"],
-            "country": user["country"]
-        }
+    user_dict = {u["user_id"]: {"name": u["name"], "country": u["country"]} for u in users}
     for order in orders:
         user_info = user_dict.get(order["user_id"])
         result.append({
             "user_id": order["user_id"],
             "order_id": order["order_id"],
-            "name": user_dict[order["user_id"]]["name"] if user_info else None,
-            "country": user_dict[order["user_id"]]["country"] if user_info else None,
+            "name": user_info["name"] if user_info else None,
+            "country": user_info["country"] if user_info else None,
             "amount": order["amount"]
         })
     return result
 
 
-print(attach_user_info(orders, users))
+print(enrich_orders_with_users(orders, users))
