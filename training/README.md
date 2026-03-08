@@ -8,25 +8,21 @@ Exercises are grouped by **topic** in numbered subdirectories (in progression or
 
 ## 📂 Structure and progression
 
-| Directory | Topic | Files | Main functions |
-|-----------|--------|--------|-----------------|
-| **01_fundamentals** | Filtering, aggregation (manual groupby), basic structures | `filter_blacklist.py` | `filter_blacklisted_users` |
-| | | `aggregate_by_country.py` | `aggregate_by_country` |
-| | | `basics_vehicles.py` | `get_late_vehicles`, `average_speed_by_route`, `vehicles_by_route`, `fastest_vehicle_by_route`, etc. |
-| **02_joins** | Hash join, enrichment | `enrich_orders_with_users.py` | `enrich_orders_with_users` |
-| | | `join_orders_with_users.py` | `join_orders_with_users` |
-| **03_deduplication** | Deduplication (first occurrence, then latest by timestamp) | `dedup_first_occurrence.py` | `deduplicate_first_occurrence` |
-| | | `dedup_keep_last.py` | `deduplicate_keep_last` **(to do — D1)** |
-| **04_partitioning** | Logical partitioning (hash → partition) | `partition_by_key.py` | `partition_by_key` |
-| **05_top_k** | Top-K global and per partition, heap | `top_k_global_heap.py` | `top_k_global_heap` |
-| | | `top_k_per_partition_heap.py` | `top_k_products_by_country` |
-| | | `top_k_users_by_country_heap.py` | `top_k_users_by_country` |
-| **06_skew** | Skew detection, salting, top-K after salt | `detect_skew.py` | `detect_skew` |
-| | | `salt_events.py` | `salt_events` |
-| | | `top_k_after_salt.py` | `top_k_after_salt` |
-| **07_pandas** | Same patterns in pandas (merge, groupby, agg, head) | `total_amount_by_country.py` | `total_amount_by_country` |
-| | | `top_k_global_pandas.py` | `top_k_active_users` |
-| | | `top_k_products_by_country_pandas.py` | `top_k_products_by_country` |
+| Directory | Topic | Files | Status |
+|-----------|--------|--------|--------|
+| **01_fundamentals** | Filtering, aggregation (manual groupby), basic structures | `filter_blacklist.py`, `aggregate_by_country.py`, `basics_vehicles.py` | ✅ |
+| **02_joins** | Hash join, enrichment; optional: broadcast join (F3) | `enrich_orders_with_users.py`, `join_orders_with_users.py`, `broadcast_join.py` | ✅ |
+| **03_deduplication** | Deduplication (first occurrence, then latest by timestamp) | `dedup_first_occurrence.py`, `dedup_keep_last.py` | ✅ |
+| **04_partitioning** | Logical partitioning (hash → partition) | `partition_by_key.py` | ✅ |
+| **05_top_k** | Top-K global and per partition, heap, distributed (F1) | `top_k_global_heap.py`, `top_k_per_partition_heap.py`, `top_k_users_by_country_heap.py`, `top_k_distributed.py` | ❌ |
+| **06_skew** | Skew detection, salting, top-K after salt | `detect_skew.py`, `salt_events.py`, `top_k_after_salt.py` | ✅ |
+| **07_pandas** | Same patterns in pandas (merge, groupby, agg, head) | `total_amount_by_country.py`, `top_k_global_pandas.py`, `top_k_products_by_country_pandas.py` | ✅ |
+| **08_window_functions** | Cumulative metrics (D2), Lag/Lead (D3) | `cumulative_metrics.py`, `lag_lead.py` | ❌ |
+| **09_time_series** | Time bucket, rolling window | `time_bucket.py`, `rolling_window.py` | ❌ |
+| **10_mini_pipeline** | Mini pipeline (H): top products, top users, revenue by country | `pipeline.py` | ❌ |
+
+**Status:** ✅ done (core exercises in the directory implemented) · ❌ to do (at least one exercise not started).  
+The core joins (hash join, enrichment) in 02_joins are done; `broadcast_join` is optional (Spark-style optimization).
 
 To run a script from the project root:  
 `python training/01_fundamentals/filter_blacklist.py`  
@@ -60,36 +56,20 @@ For **06_skew** (imports between files in the same folder), run from the root:
 
 ---
 
-## 3️⃣ Still to learn
-
-- **D1** — Deduplication “keep latest by timestamp” (statement and signature in `03_deduplication/dedup_keep_last.py`).
-- **D2** — Cumulative metrics. **D3** — Lag / Lead.
-- **E** — Time series (time bucket, rolling windows).
-- **F** — F1 distributed top-K; F2 skew join in Spark; **F3** broadcast join.
-- **G** — Moving to PySpark (translating the patterns).
-- **H, I** — Mini pipeline, modern pipeline (optional).
-
----
-
-## 4️⃣ Short progression (PySpark / Airflow goal)
-
-1. **D1** — Implement `deduplicate_keep_last` (pure Python) in `03_deduplication/dedup_keep_last.py`.
-2. **D2** — Cumulative metrics (optional).
-3. **Move to PySpark** — Redo D1 (and D2 if needed) in PySpark, then apply to the GTFS-RT stream.
-4. **Airflow** — DAG(s) to run the producer and Spark job.
-5. The rest (D3, E, F, H, I) as needed.
-
----
-
-## 5️⃣ Suggested next exercise
-
-**D1 — Deduplication “keep latest by timestamp”**  
-File: `training/03_deduplication/dedup_keep_last.py`.  
-Input: list of events with `event_id`, `timestamp`.  
-Goal: keep **one** record per `event_id`, the one with the **latest timestamp** (bronze → silver / Kafka pattern).
-
----
-
 ## 📚 Reference
 
 Modern data pipelines (Spark, Flink, Kafka, data warehouses) rely on a small set of algorithmic patterns. The structure above covers the main ones up to the move to PySpark.
+
+---
+
+## Exercises still to do (in order)
+
+1. `08_window_functions/cumulative_metrics.py` — D2 cumulative metrics (running sum per partition).
+2. `08_window_functions/lag_lead.py` — D3 lag/lead (compare with previous/next row).
+3. `09_time_series/time_bucket.py` — time bucketing (aggregate by hour/day).
+4. `09_time_series/rolling_window.py` — rolling window (e.g. sum over last N rows).
+5. `05_top_k/top_k_distributed.py` — F1 distributed top-K (local top-K per partition, then merge).
+6. `10_mini_pipeline/pipeline.py` — H mini pipeline (top products, top users, revenue by country, etc.).
+
+**Optional** (useful for Spark but not required to complete the path):  
+`02_joins/broadcast_join.py` — F3 broadcast join (small table in memory, join with large table).
