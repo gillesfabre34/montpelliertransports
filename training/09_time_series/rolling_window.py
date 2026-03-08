@@ -10,6 +10,7 @@ Input:  list of records ordered by time (or with timestamp), and window size (e.
 Output: same records with an extra field e.g. rolling_sum or rolling_avg.
 """
 from rich import print
+from collections import defaultdict
 
 # Daily sales. For each day, compute the sum of amount over the last 3 days (including current).
 SALES = [
