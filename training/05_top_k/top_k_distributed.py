@@ -22,6 +22,7 @@ PARTITIONS = {"A": PARTITION_A, "B": PARTITION_B, "C": PARTITION_C}
 
 # Expected: local top-2 per partition → A: u2(30), u1(10); B: u4(25), u5(8); C: u6(40), u7(12).
 # Merge: (30,25,40,10,8,12) → global top-2: u6(40), u2(30).
+EXPECTED_TOP_K_DISTRIBUTED = [("u6", 40), ("u2", 30)]
 
 
 def top_k_distributed(

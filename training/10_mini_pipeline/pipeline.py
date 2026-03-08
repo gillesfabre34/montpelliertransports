@@ -42,6 +42,16 @@ PRODUCTS = [
     {"product_id": "p3", "name": "Gizmo"},
 ]
 
+# Expected outputs (for k=2 where applicable)
+EXPECTED_TOP_PRODUCTS = [("p1", 2), ("p2", 2)]  # p1: 2 orders, p2: 2, p3: 1
+EXPECTED_TOP_USERS_BY_REVENUE = [("u3", 200.0), ("u1", 170.0)]  # u3: 200, u1: 170, u2: 50, u4: 30
+EXPECTED_REVENUE_BY_COUNTRY = [
+    {"country": "FR", "total_revenue": 220},   # u1 + u2
+    {"country": "US", "total_revenue": 200},   # u3
+    {"country": "DE", "total_revenue": 30},    # u4
+]
+EXPECTED_TOP_USERS_BY_EVENT_COUNT = [("u1", 3), ("u2", 1)]  # u1: 3 events, u2: 1
+
 
 def top_products(orders: list[dict], k: int) -> list[tuple[str, int]]:
     """

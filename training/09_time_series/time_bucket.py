@@ -20,6 +20,10 @@ EVENTS = [
     {"event_id": "e5", "timestamp": 7300, "amount": 25},
 ]
 # Example: bucket size 3600 (1 hour). Bucket 1: 3600,3700,3650 → count 3, sum 45. Bucket 2: 7200,7300 → count 2, sum 30.
+EXPECTED_TIME_BUCKET = [
+    {"bucket": 1, "count": 3, "sum": 45},
+    {"bucket": 2, "count": 2, "sum": 30},
+]
 
 
 def aggregate_by_time_bucket(

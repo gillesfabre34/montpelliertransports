@@ -24,6 +24,13 @@ PRICE_HISTORY = [
 
 # Expected: each row gets e.g. price_prev (lag) and price_next (lead) within product_id.
 # P1 first row: price_prev=None, price_next=105.  P1 second: price_prev=100, price_next=102.  etc.
+EXPECTED_LAG_LEAD = [
+    {"product_id": "P1", "timestamp": 1000, "price": 100, "price_prev": None, "price_next": 105},
+    {"product_id": "P1", "timestamp": 1002, "price": 105, "price_prev": 100, "price_next": 102},
+    {"product_id": "P1", "timestamp": 1005, "price": 102, "price_prev": 105, "price_next": None},
+    {"product_id": "P2", "timestamp": 1001, "price": 50, "price_prev": None, "price_next": 55},
+    {"product_id": "P2", "timestamp": 1004, "price": 55, "price_prev": 50, "price_next": None},
+]
 
 
 def lag_lead(

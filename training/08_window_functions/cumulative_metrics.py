@@ -13,6 +13,7 @@ Used for: dashboards, spend tracking, running balances.
 Input:  list of records with partition key (e.g. user_id), order key (timestamp), value (amount).
 Output: same records with an extra field for cumulative sum per partition (or list of dicts with cumsum).
 """
+from collections import defaultdict
 from rich import print
 
 # Transactions per user, ordered by time: compute running total spent per user.
@@ -26,6 +27,13 @@ TRANSACTIONS = [
 
 # Expected: each row gets a cumulative sum within its user_id (order by timestamp).
 # U1: 10 → 10+15=25 → 25+20=45.  U2: 25 → 25+5=30.
+EXPECTED_CUMULATIVE_METRICS = [
+    {"user_id": "U1", "timestamp": 1000, "amount": 10, "cumsum": 10},
+    {"user_id": "U2", "timestamp": 1001, "amount": 25, "cumsum": 25},
+    {"user_id": "U1", "timestamp": 1002, "amount": 15, "cumsum": 25},
+    {"user_id": "U1", "timestamp": 1005, "amount": 20, "cumsum": 45},
+    {"user_id": "U2", "timestamp": 1006, "amount": 5, "cumsum": 30},
+]
 
 
 def cumulative_sum_by_partition(
@@ -46,7 +54,23 @@ def cumulative_sum_by_partition(
     Returns:
         list of dicts with same fields plus "cumsum" (or similar) per partition.
     """
-    raise NotImplementedError
+    users = defaultdict(list)
+    sums = defaultdict(int)
+    for r in rows:
+        partition_value = r[partition_key]
+        sums[partition_value] += r[value_key]
+        t_copy = r.copy()
+        t_copy["cumsum"] = sums[partition_value]
+        users[partition_value].append(t_copy)
+
+    result = []
+    for user_id, events in users.items():
+        for event in events:
+            result.append(event)
+
+    result = sorted(result, key=lambda x: x[order_key])
+    return result
+
 
 
 if __name__ == "__main__":

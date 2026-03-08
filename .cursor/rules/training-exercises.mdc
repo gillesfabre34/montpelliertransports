@@ -1,0 +1,16 @@
+---
+description: Ne pas modifier le corps des fonctions dans les exercices d'entraînement
+globs: training/**/*.py
+alwaysApply: false
+---
+
+# Exercices d'entraînement (training/)
+
+L'utilisateur s'entraîne à maîtriser les notions (algorithmes, agrégations, fenêtres, etc.) en codant lui-même les exercices.
+
+**Ne jamais modifier le corps des fonctions** dans les fichiers sous `training/` : c'est à l'utilisateur de les implémenter et de les corriger pour s'entraîner. On peut en revanche :
+- discuter de la signature, des specs ou des sorties attendues ;
+- ajouter des constantes (inputs, expected outputs), de la doc, des commentaires ;
+- corriger des erreurs de syntaxe ou d'import si l'utilisateur le demande explicitement.
+
+Ne pas réécrire, "corriger" ou "compléter" l'implémentation à sa place.

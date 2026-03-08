@@ -20,6 +20,13 @@ SALES = [
     {"date": "2024-01-05", "amount": 90},
 ]
 # Expected (window=3): day1: 100; day2: 100+120=220; day3: 100+120+80=300; day4: 120+80+150=350; day5: 80+150+90=320.
+EXPECTED_ROLLING_SUM = [
+    {"date": "2024-01-01", "amount": 100, "rolling_sum": 100},
+    {"date": "2024-01-02", "amount": 120, "rolling_sum": 220},
+    {"date": "2024-01-03", "amount": 80, "rolling_sum": 300},
+    {"date": "2024-01-04", "amount": 150, "rolling_sum": 350},
+    {"date": "2024-01-05", "amount": 90, "rolling_sum": 320},
+]
 
 
 def rolling_sum(
