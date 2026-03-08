@@ -48,7 +48,16 @@ def rolling_sum(
     Returns:
         list of dicts with same fields plus "rolling_sum".
     """
-    raise NotImplementedError
+    result = []
+    sorted_rows = sorted(rows, key=lambda x: x[order_key])
+    current_sum = 0
+    for i, r in enumerate(sorted_rows, start=1):
+        current_sum += r[value_key]
+        if i > window_size:
+            current_sum -= sorted_rows[i - window_size - 1][value_key]
+        r["rolling_sum"] = current_sum
+        result.append(r)
+    return result
 
 
 if __name__ == "__main__":
