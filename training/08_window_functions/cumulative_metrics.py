@@ -72,6 +72,5 @@ def cumulative_sum_by_partition(
     return result
 
 
-
 if __name__ == "__main__":
     print(cumulative_sum_by_partition(TRANSACTIONS, "user_id", "timestamp", "amount"))
