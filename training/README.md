@@ -18,7 +18,7 @@ Exercises are grouped by **topic** in numbered subdirectories (in progression or
 | **06_skew** | Skew detection, salting, top-K after salt | `detect_skew.py`, `salt_events.py`, `top_k_after_salt.py` | ✅ |
 | **07_pandas** | Same patterns in pandas (merge, groupby, agg, head) | `total_amount_by_country.py`, `top_k_global_pandas.py`, `top_k_products_by_country_pandas.py` | ✅ |
 | **08_window_functions** | Cumulative metrics (D2), Lag/Lead (D3) | `cumulative_metrics.py`, `lag_lead.py` | ✅ |
-| **09_time_series** | Time bucket, rolling window | `time_bucket.py`, `rolling_window.py` | ❌ |
+| **09_time_series** | Time bucket, rolling window | `time_bucket.py`, `rolling_window.py` | ✅ |
 | **10_mini_pipeline** | Mini pipeline (H): top products, top users, revenue by country | `pipeline.py` | ❌ |
 
 **Status:** ✅ done (core exercises in the directory implemented) · ❌ to do (at least one exercise not started).  
@@ -48,12 +48,13 @@ For **06_skew** (imports between files in the same folder), run from the root:
 | Top-K per partition | partition → heap → head(K) | 05_top_k, 07_pandas |
 | Skew: detection + salting | threshold, salting, re-aggregation | 06_skew |
 | Cumulative (D2) / Lag-Lead (D3) | partition → order → cumsum, lag, lead | 08_window_functions |
+| Time bucket / Rolling window | aggregate by hour/day, sum over last N rows | 09_time_series |
 
 ---
 
 ## 2️⃣ Introduced (in progress)
 
-**Window functions:** `PARTITION BY`, `ORDER BY`, pattern partition → order → rank/filter (D1), window aggregate (D2), lag/lead (D3). **D1** `dedup_keep_last`, **D2** `cumulative_metrics`, **D3** `lag_lead` done. **Next:** `09_time_series` (time bucket, rolling window).
+**Window functions:** `PARTITION BY`, `ORDER BY`, pattern partition → order → rank/filter (D1), window aggregate (D2), lag/lead (D3). **D1** `dedup_keep_last`, **D2** `cumulative_metrics`, **D3** `lag_lead` done. **09_time_series** (time bucket, rolling window) done. **Next:** `05_top_k/top_k_distributed.py` et `10_mini_pipeline/pipeline.py`.
 
 ---
 
@@ -65,10 +66,8 @@ Modern data pipelines (Spark, Flink, Kafka, data warehouses) rely on a small set
 
 ## Exercises still to do (in order)
 
-1. `09_time_series/time_bucket.py` — time bucketing (aggregate by hour/day).
-2. `09_time_series/rolling_window.py` — rolling window (e.g. sum over last N rows).
-3. `05_top_k/top_k_distributed.py` — F1 distributed top-K (local top-K per partition, then merge).
-4. `10_mini_pipeline/pipeline.py` — H mini pipeline (top products, top users, revenue by country, etc.).
+1. `05_top_k/top_k_distributed.py` — F1 distributed top-K (local top-K per partition, then merge).
+2. `10_mini_pipeline/pipeline.py` — H mini pipeline (top products, top users, revenue by country, etc.). **Optionnel** : exercice de synthèse (enchaîner les patterns déjà vus dans un seul flux) ; utile pour ancrer l’idée de « pipeline une entrée / plusieurs sorties » avant de passer à PySpark, mais pas indispensable si tu enchaînes directement sur Spark.
 
 **Optional** (useful for Spark but not required to complete the path):  
 `02_joins/broadcast_join.py` — F3 broadcast join (small table in memory, join with large table).

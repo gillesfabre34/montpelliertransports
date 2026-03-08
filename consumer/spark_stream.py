@@ -1,6 +1,8 @@
 """Spark consumer."""
 
 import os
+from pathlib import Path
+
 from dotenv import load_dotenv
 from pyspark.sql import SparkSession
 from pyspark.sql.types import StructType, StringType, DoubleType, LongType, StructField
@@ -12,7 +14,9 @@ from config import (
     KAFKA_TOPIC_VEHICLE_POSITIONS_RAW,
 )
 
-load_dotenv()
+# Load .env from project root so MOCK_DATA_PATH and Azure vars are always found
+_project_root = Path(__file__).resolve().parent.parent
+load_dotenv(_project_root / ".env")
 
 AZURE_STORAGE_ACCOUNT_NAME = os.getenv("AZURE_STORAGE_ACCOUNT_NAME")
 AZURE_ACCESS_KEY = os.getenv("AZURE_ACCESS_KEY")
@@ -20,6 +24,10 @@ AZURE_APP_NAME = os.getenv("AZURE_APP_NAME")
 AZURE_CONTAINER_BRONZE = os.getenv("AZURE_CONTAINER_BRONZE")
 AZURE_FOLDER_BRONZE = os.getenv("AZURE_FOLDER_BRONZE")
 AZURE_FOLDER_CHECKPOINT = os.getenv("AZURE_FOLDER_CHECKPOINT")
+
+# Mock mode: read from Parquet/Delta path (local or Azure) instead of Kafka. No Kafka required.
+MOCK_DATA_PATH = os.getenv("MOCK_DATA_PATH")  # e.g. "mocks/" or "wasbs://container@account.../bronze/year=2025/month=3/day=8/"
+MOCK_DATA_FORMAT = (os.getenv("MOCK_DATA_FORMAT") or "parquet").lower()  # "parquet" or "delta"
 
 BRONZE_PATH = f"wasbs://{AZURE_CONTAINER_BRONZE}@{AZURE_STORAGE_ACCOUNT_NAME}.blob.core.windows.net/{AZURE_FOLDER_BRONZE}/"
 CHECKPOINT_PATH = f"wasbs://{AZURE_CONTAINER_BRONZE}@{AZURE_STORAGE_ACCOUNT_NAME}.blob.core.windows.net/{AZURE_FOLDER_CHECKPOINT}/"
@@ -44,6 +52,18 @@ def read_spark():
 
     print(f"\nSpark version {spark.version}\n")
 
+    if MOCK_DATA_PATH:
+        # Batch mode: read from Parquet or Delta (local or Azure). No Kafka.
+        print(f"Mock mode: reading from {MOCK_DATA_PATH} (format={MOCK_DATA_FORMAT})\n")
+        if MOCK_DATA_FORMAT == "delta":
+            df_partitioned = spark.read.format("delta").load(MOCK_DATA_PATH)
+        else:
+            df_partitioned = spark.read.parquet(MOCK_DATA_PATH)
+        print(f"Read {df_partitioned.count()} rows.")
+        df_partitioned.show(5, truncate=False)
+        return
+
+    # Streaming mode: Kafka -> parse -> Delta
     df_raw = (
         spark.readStream.format("kafka")
         .option("kafka.bootstrap.servers", KAFKA_BOOTSTRAP_SERVERS)

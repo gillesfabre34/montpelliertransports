@@ -1,0 +1,14 @@
+---
+description: All project files must be in English
+alwaysApply: true
+---
+
+# Language: English only
+
+All source files, documentation, and user-facing content in this project must be written in **English**.
+
+- Code: comments, docstrings, variable/function names (when not domain-specific), log messages.
+- Docs: README files, inline documentation, commit messages.
+- Exception: strings or content that are intentionally in another language for business or locale reasons (e.g. UI copy for a specific locale).
+
+When adding or editing files, use English. When translating existing content (e.g. READMEs), replace the previous language with English.
