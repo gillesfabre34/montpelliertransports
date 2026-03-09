@@ -10,6 +10,7 @@ from typing import Optional
 from pyspark.sql import SparkSession, DataFrame
 from io import BytesIO
 
+
 _project_root = Path(__file__).resolve().parent.parent
 load_dotenv(_project_root / ".env")
 spark = SparkSession.builder.getOrCreate()
@@ -69,7 +70,7 @@ def get_dataframe_from_blobs(partition_path: str) -> DataFrame:
 def create_mock(year: Optional[int] = None,
               month: Optional[int] = None,
               day: Optional[int] = None) -> None:
-    file_name = 'bronze_' + str(year) + '_' + str(month) + '_' + str(day) + '.parquet'
+    file_name = 'bronze_' + str(year) + '_' + str(month) + '_' + str(day)
     file_path = 'mocks/' + file_name
     partition: str = get_partition(2026, 3, 2)
     df = get_dataframe_from_blobs(partition)
@@ -78,7 +79,6 @@ def create_mock(year: Optional[int] = None,
     df.write.mode("overwrite").parquet(file_path)
 
 
-
 if __name__ == "__main__":
     create_mock(2026, 3, 2)
-    print(f"get_mocks done")
+    print(f"create_mock() done")
