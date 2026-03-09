@@ -178,6 +178,20 @@ Airflow provides Python-based orchestration for the entire platform.
 - Append-only  
 - Full history preserved  
 
+#### Example schema – `vehicle_positions`
+
+Typical schema for the vehicle positions stream (coming from Kafka / Parquet):
+
+- `entity_id`: string — unique vehicle identifier  
+- `trip_id`: string — trip / journey identifier  
+- `route_id`: string — route or line identifier  
+- `latitude`: double — current latitude  
+- `longitude`: double — current longitude  
+- `bearing`: double — current heading / direction (degrees)  
+- `speed`: double — current speed (e.g. m/s or km/h depending on source)  
+- `event_timestamp`: timestamp — event time from the source system  
+- `source`: string — technical source (e.g. topic name, system)  
+
 ### Silver Layer
 
 - Cleaned and normalized data:  
@@ -218,6 +232,13 @@ project/
 ├── producer/
 │   ├── gtfs_producer.py
 │   └── config.py
+│
+├── consumer/
+│   ├── spark_stream.py
+│   ├── blobs.py
+│   ├── config.py
+│   └── mocks/
+│       └── (Parquet mock data from Azure, controlled via MOCK_DATA_PATH / MOCK_DATA_FORMAT)
 │
 ├── spark/   (ou jobs Databricks)
 │   ├── stream_processor.py
@@ -268,7 +289,7 @@ project/
 - Tests  
 - Documentation  
 - Data quality checks  
-- **pandas** pour les tests et l’analyse exploratoire  
+- **pandas** pour les tests et l’analyse exploratoire (incl. real-data exercises under `training/11_vehicle_positions_pandas/` using Bronze mocks from Azure via `consumer/mocks/` and `MOCK_DATA_PATH`)  
 
 ### Phase 5 – Advanced
 

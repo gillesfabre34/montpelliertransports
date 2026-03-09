@@ -20,6 +20,11 @@ Exercises are grouped by **topic** in numbered subdirectories (in progression or
 | **08_window_functions** | Cumulative metrics (D2), Lag/Lead (D3) | `cumulative_metrics.py`, `lag_lead.py` | ✅ |
 | **09_time_series** | Time bucket, rolling window | `time_bucket.py`, `rolling_window.py` | ✅ |
 | **10_mini_pipeline** | Mini pipeline (H): top products, top users, revenue by country | `pipeline.py` | ❌ |
+| **11_vehicle_positions_pandas** | Real vehicle positions schema (Bronze mock) with pandas: exploration, D1 dedup, time buckets | `exploration.py`, `dedup_latest_by_entity_trip_pandas.py`, `time_bucket_route_stats_pandas.py` | ❌ |
+| **12_spark_bronze_batch** | Spark Bronze (batch) on mock/real Bronze data | `bronze_from_mocks.py` | ❌ |
+| **13_spark_silver_dedup_clean** | Spark Silver: D1 dedup + basic quality rules | `silver_dedup_clean.py` | ❌ |
+| **14_spark_gold_aggregations** | Spark Gold: hourly and daily route metrics for BI | `gold_route_metrics.py` | ❌ |
+| **15_airflow_pipeline_design** | Airflow DAG design (Bronze → Silver → Gold) | `vehicle_positions_dag_design.py` | ❌ |
 
 **Status:** ✅ done (core exercises in the directory implemented) · ❌ to do (at least one exercise not started).  
 The core joins (hash join, enrichment) in 02_joins are done; `broadcast_join` is optional (Spark-style optimization).
@@ -50,11 +55,13 @@ For **06_skew** (imports between files in the same folder), run from the root:
 | Cumulative (D2) / Lag-Lead (D3) | partition → order → cumsum, lag, lead | 08_window_functions |
 | Time bucket / Rolling window | aggregate by hour/day, sum over last N rows | 09_time_series |
 
+Real-data patterns (vehicle positions, mock Bronze from Azure) reuse the same ideas in 11_vehicle_positions_pandas and extend them to Spark and DAG design in 12–15.
+
 ---
 
 ## 2️⃣ Introduced (in progress)
 
-**Window functions:** `PARTITION BY`, `ORDER BY`, pattern partition → order → rank/filter (D1), window aggregate (D2), lag/lead (D3). **D1** `dedup_keep_last`, **D2** `cumulative_metrics`, **D3** `lag_lead` done. **09_time_series** (time bucket, rolling window) done. **Next:** `05_top_k/top_k_distributed.py` et `10_mini_pipeline/pipeline.py`.
+**Window functions:** `PARTITION BY`, `ORDER BY`, pattern partition → order → rank/filter (D1), window aggregate (D2), lag/lead (D3). **D1** `dedup_keep_last`, **D2** `cumulative_metrics`, **D3** `lag_lead` done. **09_time_series** (time bucket, rolling window) done. **Next:** `05_top_k/top_k_distributed.py`, `10_mini_pipeline/pipeline.py`, real-data practice in `11_vehicle_positions_pandas/`, and Spark/DAG extensions in 12–15.
 
 ---
 
@@ -66,8 +73,26 @@ Modern data pipelines (Spark, Flink, Kafka, data warehouses) rely on a small set
 
 ## Exercises still to do (in order)
 
-1. `05_top_k/top_k_distributed.py` — F1 distributed top-K (local top-K per partition, then merge).
-2. `10_mini_pipeline/pipeline.py` — H mini pipeline (top products, top users, revenue by country, etc.). **Optionnel** : exercice de synthèse (enchaîner les patterns déjà vus dans un seul flux) ; utile pour ancrer l’idée de « pipeline une entrée / plusieurs sorties » avant de passer à PySpark, mais pas indispensable si tu enchaînes directement sur Spark.
+1. `11_vehicle_positions_pandas/` — apply patterns to the real vehicle positions schema (mock Bronze data):
+   - `exploration.py` — read Parquet from mock/Azure, basic exploration, stats by route.
+   - `dedup_latest_by_entity_trip_pandas.py` — D1: KEEP LAST per (entity_id, trip_id) using pandas.
+   - `time_bucket_route_stats_pandas.py` — time buckets + aggregations per (route_id, bucket).
+2. `12_spark_bronze_batch/bronze_from_mocks.py` — Spark Bronze (batch) on mock/real Bronze data:
+   - create a SparkSession for local batch.
+   - implement `read_bronze_batch` (Parquet vs Delta) and `print_bronze_overview`.
+3. `13_spark_silver_dedup_clean/silver_dedup_clean.py` — Spark Silver:
+   - implement `deduplicate_keep_last_entity_trip_spark` (D1 window).
+   - implement `apply_silver_quality_rules` (coordinates, speed, nulls).
+   - implement `build_silver_dataframe` (read Bronze → dedup → quality).
+4. `14_spark_gold_aggregations/gold_route_metrics.py` — Spark Gold:
+   - implement `compute_route_hourly_speed` (route_id, event_hour, metrics).
+   - implement `compute_daily_route_activity` (event_date, route_id, metrics).
+   - implement `build_gold_dataframes` (Silver → hourly + daily).
+5. `15_airflow_pipeline_design/vehicle_positions_dag_design.py` — DAG design:
+   - design a dict-based DAG spec for Bronze → Silver → Gold.
+   - implement a console-friendly formatter for this spec.
+6. `05_top_k/top_k_distributed.py` — F1 distributed top-K (local top-K per partition, then merge).
+7. `10_mini_pipeline/pipeline.py` — H mini pipeline (top products, top users, revenue by country, etc.). **Optional**: synthesis exercise; useful to anchor the “one input / multiple outputs pipeline” idea before moving fully to PySpark, but not mandatory if you go directly to Spark.
 
 **Optional** (useful for Spark but not required to complete the path):  
 `02_joins/broadcast_join.py` — F3 broadcast join (small table in memory, join with large table).
