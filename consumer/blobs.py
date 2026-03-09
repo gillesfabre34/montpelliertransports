@@ -51,7 +51,6 @@ def get_parquet_blobs_in_memory(partition_path: str) -> list[BytesIO]:
 
 def get_dataframe_from_blobs(partition_path: str) -> DataFrame:
     parquet_buffers = get_parquet_blobs_in_memory(partition_path)
-    print("parquet_buffers", parquet_buffers)
     dfs = []
     for parquet_buffer in parquet_buffers:
         tmp = tempfile.NamedTemporaryFile(suffix=".parquet", delete=False)
@@ -67,10 +66,19 @@ def get_dataframe_from_blobs(partition_path: str) -> DataFrame:
         return spark.createDataFrame([], schema=None)
 
 
-if __name__ == "__main__":
+def create_mock(year: Optional[int] = None,
+              month: Optional[int] = None,
+              day: Optional[int] = None) -> None:
+    file_name = 'bronze_' + str(year) + '_' + str(month) + '_' + str(day) + '.parquet'
+    file_path = 'mocks/' + file_name
     partition: str = get_partition(2026, 3, 2)
     df = get_dataframe_from_blobs(partition)
-    print("df", df)
     df.printSchema()
     df.show(20, truncate=False)
+    df.write.mode("overwrite").parquet(file_path)
+
+
+
+if __name__ == "__main__":
+    create_mock(2026, 3, 2)
     print(f"get_mocks done")
