@@ -1,14 +1,19 @@
 import os
+import tempfile
+from functools import reduce
 from rich import print
-from datetime import datetime, timedelta
 from azure.storage.blob import BlobServiceClient, ContainerClient, BlobProperties
 from azure.core.paging import ItemPaged
 from dotenv import load_dotenv
 from pathlib import Path
 from typing import Optional
+from pyspark.sql import SparkSession, DataFrame
+from io import BytesIO
 
 _project_root = Path(__file__).resolve().parent.parent
 load_dotenv(_project_root / ".env")
+spark = SparkSession.builder.getOrCreate()
+spark.sparkContext.setLogLevel("ERROR")
 
 
 def get_partition(year: Optional[int] = None,
@@ -16,27 +21,56 @@ def get_partition(year: Optional[int] = None,
                   day: Optional[int] = None) -> str:
     root = os.getenv("AZURE_PARTITIONS_ROOT")
     if year is None:
-        return root
+        return root + '/'
     elif month is None:
-        return root + 'year=' + str(year)
+        return root + 'year=' + str(year) + '/'
     elif day is None:
-        return root + 'year=' + str(year) + '/month=' + str(month)
+        return root + 'year=' + str(year) + '/month=' + str(month) + '/'
     else:
-        return root + 'year=' + str(year) + '/month=' + str(month) + '/day=' + str(day)
+        return root + 'year=' + str(year) + '/month=' + str(month) + '/day=' + str(day) + '/'
+
+
+def get_bronze_container() -> ContainerClient:
+    blob_service_client = BlobServiceClient(os.getenv("AZURE_ACCOUNT_URL"), os.getenv("AZURE_ACCESS_KEY"))
+    return blob_service_client.get_container_client(os.getenv("AZURE_CONTAINER_BRONZE"))
 
 
 def get_blobs(partition_path: str) -> ItemPaged[BlobProperties]:
-    blob_service_client = BlobServiceClient(os.getenv("AZURE_ACCOUNT_URL"), os.getenv("AZURE_ACCESS_KEY"))
-    print(f"blob_service_client", blob_service_client)
-    bronze_container: ContainerClient = blob_service_client.get_container_client(os.getenv("AZURE_CONTAINER_BRONZE"))
-    list_blobs = bronze_container.list_blobs(name_starts_with=partition_path)
-    print(f"list_blobs", list_blobs)
+    return get_bronze_container().list_blobs(name_starts_with=partition_path)
+
+
+def get_parquet_blobs_in_memory(partition_path: str) -> list[BytesIO]:
+    list_blobs = get_blobs(partition_path)
+    parquet_buffers = []
     for blob in list_blobs:
-        print(blob)
-    return list_blobs
+        if blob.name.endswith(".parquet"):
+            content = get_bronze_container().download_blob(blob.name).readall()
+            parquet_buffers.append(BytesIO(content))
+    return parquet_buffers
+
+
+def get_dataframe_from_blobs(partition_path: str) -> DataFrame:
+    parquet_buffers = get_parquet_blobs_in_memory(partition_path)
+    print("parquet_buffers", parquet_buffers)
+    dfs = []
+    for parquet_buffer in parquet_buffers:
+        tmp = tempfile.NamedTemporaryFile(suffix=".parquet", delete=False)
+        tmp.write(parquet_buffer.getbuffer().tobytes())
+        tmp.close()
+        df = spark.read.parquet(tmp.name)
+        dfs.append(df)
+
+    if dfs:
+        merged_df = reduce(DataFrame.unionByName, dfs)
+        return merged_df
+    else:
+        return spark.createDataFrame([], schema=None)
 
 
 if __name__ == "__main__":
-    partition = get_partition(2026, 3, 2)
-    get_blobs(partition)
+    partition: str = get_partition(2026, 3, 2)
+    df = get_dataframe_from_blobs(partition)
+    print("df", df)
+    df.printSchema()
+    df.show(20, truncate=False)
     print(f"get_mocks done")
