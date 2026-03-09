@@ -105,11 +105,10 @@ def explore_basic(df: pd.DataFrame) -> None:
     print("columns", df.columns)
     print("head", df.head(5))
     print("speed avg", round(df["speed"].mean(), 2))
-
     return None
 
 
-def explore_by_route(df: pd.DataFrame) -> pd.DataFrame:
+def info_by_route(df: pd.DataFrame) -> pd.DataFrame:
     """
     Compute simple aggregations per route_id.
 
@@ -121,7 +120,16 @@ def explore_by_route(df: pd.DataFrame) -> pd.DataFrame:
         A DataFrame indexed by route_id (or with a route_id column) containing
         the aggregations.
     """
-    raise NotImplementedError("Group by route_id and aggregate.")
+    return (
+        df
+        .groupby("route_id")
+        .agg(
+            count=("speed", "size"),
+            speed_mean=("speed", "mean")
+        )
+        .reset_index()
+        .sort_values(by="route_id")
+    )
 
 
 if __name__ == "__main__":
@@ -133,12 +141,6 @@ if __name__ == "__main__":
     explore_basic(df_positions)
 
     # # 2) Aggregations per route (returned DataFrame)
-    # route_stats = explore_by_route(df_positions)
-    # print("\nRoute-level stats (sample):")
-    # print(route_stats.head())
-
-
-    # partition = get_partition(2026, 3, 2)
-    #
-    # df_positions = get_dataframe_from_blobs(partition)
-    # df_positions.show(10, truncate=True)
+    route_stats = info_by_route(df_positions)
+    print("\nSpeed by route")
+    print(route_stats.head(50))
