@@ -35,11 +35,14 @@ from __future__ import annotations
 import os
 from pathlib import Path
 from typing import Optional
+from rich import print
+from consumer.blobs import get_dataframe_from_blobs
 
 import pandas as pd
 
 
-def resolve_mock_path() -> str:
+
+def get_mocks_path(location: bool) -> str:
     """
     Resolve the path to the mock Bronze data used for this exercise.
 
@@ -47,13 +50,28 @@ def resolve_mock_path() -> str:
     1. Environment variable `MOCK_DATA_PATH` (can be local or Azure-style path).
     2. Local `consumer/mocks/` folder (project-relative).
     """
-    env_path = os.getenv("MOCK_DATA_PATH")
-    if env_path:
-        return env_path
+    if location:
+        project_root = Path(__file__).resolve().parents[2]
+        local_mocks = project_root / "consumer" / "mocks"
+        return str(local_mocks)
+    else:
+        env_path = os.getenv("MOCK_DATA_PATH")
+        if env_path:
+            return env_path
+        else:
+            raise "Path not found"
 
-    project_root = Path(__file__).resolve().parents[2]
-    local_mocks = project_root / "consumer" / "mocks"
-    return str(local_mocks)
+
+def get_parquet_file_name(year: Optional[int] = None,
+              month: Optional[int] = None,
+              day: Optional[int] = None) -> str:
+    return 'bronze_' + str(year) + '_' + str(month) + '_' + str(day)
+
+
+def get_parquet_path(path, year: Optional[int] = None,
+              month: Optional[int] = None,
+              day: Optional[int] = None) -> str:
+    return path + '/' + get_parquet_file_name(year, month, day)
 
 
 def load_vehicle_positions_pandas(path: Optional[str] = None) -> pd.DataFrame:
@@ -66,7 +84,7 @@ def load_vehicle_positions_pandas(path: Optional[str] = None) -> pd.DataFrame:
     Returns:
         pandas.DataFrame with the vehicle positions schema.
     """
-    final_path = path or resolve_mock_path()
+    final_path = path or get_mocks_path()
     # NOTE: For Azure paths, your environment must be configured so that
     # pandas/pyarrow can access the storage. For local mocks, a simple Parquet
     # folder under consumer/mocks/ is enough.
@@ -83,7 +101,12 @@ def explore_basic(df: pd.DataFrame) -> None:
     - Show the first 5 rows.
     - Compute and print simple descriptive stats for the `speed` column.
     """
-    raise NotImplementedError("Implement basic exploration using pandas.")
+    print("df.size", df.size)
+    print("columns", df.columns)
+    print("head", df.head(5))
+    print("speed avg", round(df["speed"].mean(), 2))
+
+    return None
 
 
 def explore_by_route(df: pd.DataFrame) -> pd.DataFrame:
@@ -102,16 +125,20 @@ def explore_by_route(df: pd.DataFrame) -> pd.DataFrame:
 
 
 if __name__ == "__main__":
-    data_path = resolve_mock_path()
-    print(f"Reading vehicle positions from: {data_path}")
-
-    df_positions = load_vehicle_positions_pandas(data_path)
+    mocks_path = get_mocks_path(True)
+    parquet_path = get_parquet_path(mocks_path, 2026, 3, 2)
+    df_positions = load_vehicle_positions_pandas(parquet_path)
 
     # 1) Basic exploration (side effects: prints)
     explore_basic(df_positions)
 
-    # 2) Aggregations per route (returned DataFrame)
-    route_stats = explore_by_route(df_positions)
-    print("\nRoute-level stats (sample):")
-    print(route_stats.head())
+    # # 2) Aggregations per route (returned DataFrame)
+    # route_stats = explore_by_route(df_positions)
+    # print("\nRoute-level stats (sample):")
+    # print(route_stats.head())
 
+
+    # partition = get_partition(2026, 3, 2)
+    #
+    # df_positions = get_dataframe_from_blobs(partition)
+    # df_positions.show(10, truncate=True)
