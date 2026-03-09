@@ -9,7 +9,7 @@ from pyspark.sql.types import StructType, StringType, DoubleType, LongType, Stru
 from pyspark.sql.functions import from_json, col, to_timestamp, year, month, dayofmonth
 from delta import configure_spark_with_delta_pip
 
-from config import (
+from .config import (
     KAFKA_BOOTSTRAP_SERVERS,
     KAFKA_TOPIC_VEHICLE_POSITIONS_RAW,
 )
