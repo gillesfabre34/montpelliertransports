@@ -20,7 +20,7 @@ from typing import Optional
 
 import pandas as pd
 
-from .exploration import load_vehicle_positions
+from exploration import load_vehicle_positions
 
 
 def add_time_bucket_column(
@@ -40,9 +40,11 @@ def add_time_bucket_column(
     Returns:
         A new DataFrame with an additional column, e.g. "event_bucket".
     """
-    raise NotImplementedError(
-        "Implement creation of a time bucket column from event_timestamp."
-    )
+    result = df.copy()
+    result["event_timestamp"] = pd.to_datetime(result["event_timestamp"])
+    result["event_bucket"] = result["event_timestamp"].dt.floor(freq)
+
+    return result
 
 
 def compute_route_time_bucket_stats(
@@ -68,9 +70,7 @@ def compute_route_time_bucket_stats(
     )
 
 
-def run_route_time_bucket_stats(
-    path: Optional[str] = None, freq: str = "15min"
-) -> pd.DataFrame:
+def run_route_time_bucket_stats(freq: str = "15min") -> pd.DataFrame:
     """
     Helper to load data and compute route time-bucketed stats.
 
@@ -78,8 +78,11 @@ def run_route_time_bucket_stats(
         path: Optional path override to the Parquet data.
         freq: bucket size passed to compute_route_time_bucket_stats.
     """
-    df = load_vehicle_positions(path)
-    return compute_route_time_bucket_stats(df, freq=freq)
+    df = load_vehicle_positions(2026,3,2)
+    stats = add_time_bucket_column(df, freq="2min")
+    print("stats", stats)
+    return df
+    # return compute_route_time_bucket_stats(df, freq=freq)
 
 
 if __name__ == "__main__":
