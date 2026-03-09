@@ -36,13 +36,10 @@ import os
 from pathlib import Path
 from typing import Optional
 from rich import print
-from consumer.blobs import get_dataframe_from_blobs
-
 import pandas as pd
 
 
-
-def get_mocks_path(location: bool) -> str:
+def get_mocks_path(is_local_path: bool = True) -> str:
     """
     Resolve the path to the mock Bronze data used for this exercise.
 
@@ -50,7 +47,7 @@ def get_mocks_path(location: bool) -> str:
     1. Environment variable `MOCK_DATA_PATH` (can be local or Azure-style path).
     2. Local `consumer/mocks/` folder (project-relative).
     """
-    if location:
+    if is_local_path:
         project_root = Path(__file__).resolve().parents[2]
         local_mocks = project_root / "consumer" / "mocks"
         return str(local_mocks)
@@ -74,7 +71,7 @@ def get_parquet_path(path, year: Optional[int] = None,
     return path + '/' + get_parquet_file_name(year, month, day)
 
 
-def load_vehicle_positions_pandas(path: Optional[str] = None) -> pd.DataFrame:
+def load_vehicle_positions(year: int, month: int, day: int, path: Optional[str] = None) -> pd.DataFrame:
     """
     Load vehicle positions from Parquet into a pandas DataFrame.
 
@@ -84,11 +81,12 @@ def load_vehicle_positions_pandas(path: Optional[str] = None) -> pd.DataFrame:
     Returns:
         pandas.DataFrame with the vehicle positions schema.
     """
-    final_path = path or get_mocks_path()
+    mocks_path = path or get_mocks_path()
+    parquet_path = get_parquet_path(mocks_path, year, month, day)
     # NOTE: For Azure paths, your environment must be configured so that
     # pandas/pyarrow can access the storage. For local mocks, a simple Parquet
     # folder under consumer/mocks/ is enough.
-    return pd.read_parquet(final_path)
+    return pd.read_parquet(parquet_path)
 
 
 def explore_basic(df: pd.DataFrame) -> None:
@@ -133,9 +131,7 @@ def info_by_route(df: pd.DataFrame) -> pd.DataFrame:
 
 
 if __name__ == "__main__":
-    mocks_path = get_mocks_path(True)
-    parquet_path = get_parquet_path(mocks_path, 2026, 3, 2)
-    df_positions = load_vehicle_positions_pandas(parquet_path)
+    df_positions = load_vehicle_positions(2026, 3, 2)
 
     # 1) Basic exploration (side effects: prints)
     explore_basic(df_positions)

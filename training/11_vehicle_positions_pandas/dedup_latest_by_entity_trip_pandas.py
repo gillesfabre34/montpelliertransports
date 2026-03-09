@@ -29,7 +29,7 @@ from typing import Optional
 
 import pandas as pd
 
-from .exploration import load_vehicle_positions_pandas
+from .exploration import load_vehicle_positions
 
 
 def deduplicate_keep_last_entity_trip(df: pd.DataFrame) -> pd.DataFrame:
@@ -47,9 +47,10 @@ def deduplicate_keep_last_entity_trip(df: pd.DataFrame) -> pd.DataFrame:
         A DataFrame where each (entity_id, trip_id) appears at most once, with
         the row having the most recent event_timestamp.
     """
-    raise NotImplementedError(
-        "Implement D1 deduplication with pandas (KEEP LAST per "
-        "(entity_id, trip_id))."
+    return (
+        df
+        .groupby(["entity_id", "trip_id"])
+        .last()
     )
 
 
@@ -64,7 +65,7 @@ def run_dedup(path: Optional[str] = None) -> pd.DataFrame:
     Returns:
         Deduplicated DataFrame.
     """
-    df = load_vehicle_positions_pandas(path)
+    df = load_vehicle_positions(path)
     return deduplicate_keep_last_entity_trip(df)
 
 

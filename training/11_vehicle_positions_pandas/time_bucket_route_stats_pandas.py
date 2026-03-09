@@ -20,7 +20,7 @@ from typing import Optional
 
 import pandas as pd
 
-from .exploration import load_vehicle_positions_pandas
+from .exploration import load_vehicle_positions
 
 
 def add_time_bucket_column(
@@ -78,7 +78,7 @@ def run_route_time_bucket_stats(
         path: Optional path override to the Parquet data.
         freq: bucket size passed to compute_route_time_bucket_stats.
     """
-    df = load_vehicle_positions_pandas(path)
+    df = load_vehicle_positions(path)
     return compute_route_time_bucket_stats(df, freq=freq)
 
 
