@@ -24,15 +24,13 @@ Here you will implement the equivalent using pandas:
 """
 
 from __future__ import annotations
-
+from rich import print
 from typing import Optional
-
 import pandas as pd
+from exploration import load_vehicle_positions
 
-from .exploration import load_vehicle_positions
 
-
-def deduplicate_keep_last_entity_trip(df: pd.DataFrame) -> pd.DataFrame:
+def get_last_entity_trip_timestamp(df: pd.DataFrame) -> pd.DataFrame:
     """
     Deduplicate vehicle positions by (entity_id, trip_id), keeping the latest
     record by event_timestamp.
@@ -47,11 +45,15 @@ def deduplicate_keep_last_entity_trip(df: pd.DataFrame) -> pd.DataFrame:
         A DataFrame where each (entity_id, trip_id) appears at most once, with
         the row having the most recent event_timestamp.
     """
-    return (
+    result = (
         df
+        .sort_values(["entity_id", "trip_id", "event_timestamp"])
         .groupby(["entity_id", "trip_id"])
         .last()
+        .reset_index()
     )
+    result["_num"] = pd.to_numeric(result["route_id"], errors="coerce")
+    return result.sort_values(by=["_num", "route_id"]).drop(columns="_num")
 
 
 def run_dedup(path: Optional[str] = None) -> pd.DataFrame:
@@ -65,12 +67,13 @@ def run_dedup(path: Optional[str] = None) -> pd.DataFrame:
     Returns:
         Deduplicated DataFrame.
     """
-    df = load_vehicle_positions(path)
-    return deduplicate_keep_last_entity_trip(df)
+    df = load_vehicle_positions(2026,3,2)
+    return get_last_entity_trip_timestamp(df)
 
 
 if __name__ == "__main__":
     result = run_dedup()
+    main_cols = result[["entity_id", "trip_id", "route_id", "event_timestamp"]]
     print("Sample of deduplicated vehicle positions:")
-    print(result.head())
+    print(main_cols.head(50))
 
