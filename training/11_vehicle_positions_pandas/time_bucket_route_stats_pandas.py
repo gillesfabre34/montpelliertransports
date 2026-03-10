@@ -14,12 +14,8 @@ to the real schema with pandas.
 """
 
 from __future__ import annotations
-
-from datetime import timedelta
-from typing import Optional
-
 import pandas as pd
-
+from pathlib import Path
 from exploration import load_vehicle_positions
 
 
@@ -28,73 +24,39 @@ def add_time_bucket_column(
 ) -> pd.DataFrame:
     """
     Add a time bucket column derived from event_timestamp.
-
-    Example:
-        - freq="15min" → buckets [00:00, 00:15, 00:30, ...]
-        - freq="1H"    → hourly buckets
-
-    Args:
-        df: Input DataFrame with an event_timestamp column (datetime-like).
-        freq: Pandas offset alias for the bucket size.
-
-    Returns:
-        A new DataFrame with an additional column, e.g. "event_bucket".
     """
-    result = df.copy()
-    result["event_timestamp"] = pd.to_datetime(result["event_timestamp"])
-    result["event_bucket"] = result["event_timestamp"].dt.floor(freq)
-
-    return result
+    df["event_timestamp"] = pd.to_datetime(df["event_timestamp"])
+    df["event_bucket"] = df["event_timestamp"].dt.floor(freq)
+    return df
 
 
-def compute_route_time_bucket_stats(
-    df: pd.DataFrame, freq: str = "15min"
-) -> pd.DataFrame:
-    """
-    Compute per-(route_id, time bucket) statistics.
-
-    Suggested metrics:
-        - count of points
-        - average speed
-
-    Steps (suggestion):
-        1. Call add_time_bucket_column(df, freq)
-        2. Group by (route_id, event_bucket)
-        3. Aggregate
-
-    Returns:
-        Aggregated DataFrame with one row per (route_id, event_bucket).
-    """
-    df = add_time_bucket_column(df, freq="5min")
-    result = (
-        df.groupby(["route_id", "event_bucket"])
-        .agg(
-            nb_entities=("entity_id", "size"),
-            speed_mean=("speed", "mean")
-        )
-    )
-    return result
-
-
-def run_route_time_bucket_stats(freq: str = "15min") -> pd.DataFrame:
+def calc_stats_by_time_bucket(freq: str = "10min") -> None:
     """
     Helper to load data and compute route time-bucketed stats.
-
-    Args:
-        path: Optional path override to the Parquet data.
         freq: bucket size passed to compute_route_time_bucket_stats.
     """
     df = load_vehicle_positions(2026,3,2)
-    df = add_time_bucket_column(df, freq="5min")
-    print("df", df)
-    stats_by_bucket = compute_route_time_bucket_stats(df,freq="5min")
-    print("stats_by_bucket", stats_by_bucket)
-    return stats_by_bucket
-    # return compute_route_time_bucket_stats(df, freq=freq)
+    df = add_time_bucket_column(df, freq=freq)
+    stats_by_bucket = (
+        df.groupby(["route_id", "event_bucket"])
+        .agg(
+            nb_entities=("entity_id", "nunique"),
+            speed_mean=("speed", "mean")
+        )
+        .reset_index()
+    )
+    root = Path(__file__).resolve().parents[2]
+    output_path = root / 'consumer/mocks/bronze_2026_3_2/outputs/time_bucket_stats.parquet'
+    stats_by_bucket.to_parquet(output_path, index=False)
+    print("Sample of route time-bucketed stats:")
+    print(stats_by_bucket.head())
+
+
+def calc_distances(df: pd.DataFrame) -> pd.DataFrame:
+    df["previous_lat"] = df.groupby("entity_id").shift(1)
+    return df
 
 
 if __name__ == "__main__":
-    stats_df = run_route_time_bucket_stats(freq="15min")
-    print("Sample of route time-bucketed stats:")
-    print(stats_df.head())
+    calc_stats_by_time_bucket(freq="5min")
 
