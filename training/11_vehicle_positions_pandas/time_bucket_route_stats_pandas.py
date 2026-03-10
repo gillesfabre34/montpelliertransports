@@ -31,12 +31,11 @@ def add_time_bucket_column(
     return df
 
 
-def calc_stats_by_time_bucket(df: pd.DataFrame, freq: str = "10min") -> None:
+def calc_stats_by_time_bucket(df: pd.DataFrame, freq: str = "10min") -> pd.DataFrame:
     """
     Helper to load data and compute route time-bucketed stats.
         freq: bucket size passed to compute_route_time_bucket_stats.
     """
-    df = add_time_bucket_column(df, freq=freq)
     stats_by_bucket = (
         df.groupby(["route_id", "event_bucket"])
         .agg(
@@ -45,13 +44,18 @@ def calc_stats_by_time_bucket(df: pd.DataFrame, freq: str = "10min") -> None:
         )
         .reset_index()
     )
+    save_output(stats_by_bucket, "time_bucket_stats.parquet")
+    return stats_by_bucket
+
+
+def save_output(df: pd.DataFrame, file_name: str) -> None:
     root = Path(__file__).resolve().parents[2]
-    output_path = root / 'consumer/mocks/bronze_2026_3_2/outputs/time_bucket_stats.parquet'
-    stats_by_bucket.to_parquet(output_path, index=False)
-    print("Sample of route time-bucketed stats:\n",stats_by_bucket.head())
+    output_path = root / 'consumer/mocks/bronze_2026_3_2/outputs/' / file_name
+    df.to_parquet(output_path, index=False)
+    print("Sample of route time-bucketed stats:\n",df.head())
 
 
-def calc_distances(df: pd.DataFrame) -> None:
+def add_distances(df: pd.DataFrame) -> pd.DataFrame:
     df["previous_lat"] = df.groupby("entity_id")["latitude"].shift(1)
     df["previous_long"] = df.groupby("entity_id")["longitude"].shift(1)
 
@@ -67,12 +71,14 @@ def calc_distances(df: pd.DataFrame) -> None:
         axis=1
     )
     df = df.drop(columns=["previous_lat", "previous_long"])
-    # print("Sample of route with distances:\n", df.head())
     print("Sample of route with distances END:\n", df.tail())
+    save_output(df, 'enriched_data.parquet')
+    return df
 
 
 if __name__ == "__main__":
     df = load_vehicle_positions(2026,3,2)
-    # calc_stats_by_time_bucket(df, freq="5min")
-    calc_distances(df)
+    df = add_time_bucket_column(df, freq="5min")
+    df = add_distances(df)
+    stats_by_bucket = calc_stats_by_time_bucket(df, freq="5min")
 
