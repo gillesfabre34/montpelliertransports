@@ -65,9 +65,15 @@ def compute_route_time_bucket_stats(
     Returns:
         Aggregated DataFrame with one row per (route_id, event_bucket).
     """
-    raise NotImplementedError(
-        "Group by route_id and the time bucket column, then aggregate."
+    df = add_time_bucket_column(df, freq="5min")
+    result = (
+        df.groupby(["route_id", "event_bucket"])
+        .agg(
+            nb_entities=("entity_id", "size"),
+            speed_mean=("speed", "mean")
+        )
     )
+    return result
 
 
 def run_route_time_bucket_stats(freq: str = "15min") -> pd.DataFrame:
@@ -79,9 +85,11 @@ def run_route_time_bucket_stats(freq: str = "15min") -> pd.DataFrame:
         freq: bucket size passed to compute_route_time_bucket_stats.
     """
     df = load_vehicle_positions(2026,3,2)
-    stats = add_time_bucket_column(df, freq="2min")
-    print("stats", stats)
-    return df
+    df = add_time_bucket_column(df, freq="5min")
+    print("df", df)
+    stats_by_bucket = compute_route_time_bucket_stats(df,freq="5min")
+    print("stats_by_bucket", stats_by_bucket)
+    return stats_by_bucket
     # return compute_route_time_bucket_stats(df, freq=freq)
 
 
