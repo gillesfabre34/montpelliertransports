@@ -24,5 +24,6 @@ def get_mocks_path(is_local_path: bool = True) -> str:
         else:
             raise "Path not found"
 
+
 if __name__ == "__main__":
     print("\npath = ", get_mocks_path())
