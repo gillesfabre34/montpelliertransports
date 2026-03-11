@@ -1,6 +1,7 @@
 from rich import print
 from pathlib import Path
 import pandas as pd
+import os
 
 
 def merge_parquets(folder_name: str) -> None:
@@ -17,4 +18,5 @@ def merge_parquets(folder_name: str) -> None:
 
 
 if __name__ == '__main__':
-    merge_parquets('bronze_2026_3_2')
+    mock_folder_name = os.getenv("LOCAL_MOCK_DATA_FOLDER_NAME")
+    merge_parquets(mock_folder_name)

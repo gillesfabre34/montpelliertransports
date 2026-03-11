@@ -3,6 +3,7 @@
 import json
 import logging
 import time
+from datetime import datetime, timezone
 from typing import Any, Dict
 
 import requests
@@ -37,6 +38,13 @@ def vehicle_to_dict(
     trip = vehicle.trip
     position = vehicle.position
 
+    ts_unix = int(vehicle.timestamp) if vehicle.timestamp else None
+    ts_iso = (
+        datetime.fromtimestamp(ts_unix, tz=timezone.utc).isoformat()
+        if ts_unix is not None
+        else None
+    )
+
     return {
         "entity_id": entity.id,
         "trip_id": trip.trip_id,
@@ -45,7 +53,8 @@ def vehicle_to_dict(
         "longitude": float(position.longitude) if position.HasField("longitude") else None,
         "bearing": float(position.bearing) if position.HasField("bearing") else None,
         "speed": float(position.speed) if position.HasField("speed") else None,
-        "event_timestamp": int(vehicle.timestamp) if vehicle.timestamp else None,
+        "event_timestamp": ts_iso,
+        "event_timestamp_unix": ts_unix,
         "source": source,
     }
 

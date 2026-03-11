@@ -50,15 +50,13 @@ def print_bronze_overview(df: DataFrame) -> None:
         - distinct count of entity_id, trip_id, route_id
         - sample of 5 rows
     """
-    raise NotImplementedError(
-        "Implement basic exploration of the Bronze DataFrame (schema, counts, "
-        "sample rows)."
-    )
+    print("\nprint_bronze_overview\n")
+
 
 
 if __name__ == "__main__":
     mocks_path = get_mocks_path()
-    print(f"Using Bronze source path: {mocks_path}")
+    print(f"Using Bronze mocks path: {mocks_path}")
 
     spark = create_spark_session()
     df_bronze = read_batch(spark, path=mocks_path, fmt="parquet")

@@ -77,29 +77,35 @@ def read_spark():
     )
     df_string = df_raw.selectExpr("CAST(value AS STRING) as value")
 
-    vehicle_schema = StructType([
-        StructField("entity_id", StringType()),
-        StructField("trip_id", StringType()),
-        StructField("route_id", StringType()),
-        StructField("latitude", DoubleType()),
-        StructField("longitude", DoubleType()),
-        StructField("bearing", DoubleType()),
-        StructField("speed", DoubleType()),
-        StructField("event_timestamp", LongType()),
-        StructField("source", StringType()),
-    ])
+    vehicle_schema = StructType(
+        [
+            StructField("entity_id", StringType()),
+            StructField("trip_id", StringType()),
+            StructField("route_id", StringType()),
+            StructField("latitude", DoubleType()),
+            StructField("longitude", DoubleType()),
+            StructField("bearing", DoubleType()),
+            StructField("speed", DoubleType()),
+            StructField("event_timestamp", StringType()),
+            StructField("event_timestamp_unix", LongType()),
+            StructField("source", StringType()),
+        ]
+    )
 
     df_parsed = df_string.select(
         from_json(col("value"), vehicle_schema).alias("data")
     )
-    df_parsed = df_parsed\
-        .select("data.*")\
+    df_parsed = (
+        df_parsed.select("data.*")
         .withColumn("event_timestamp", to_timestamp(col("event_timestamp")))
+    )
 
-    df_partitioned = df_parsed\
-        .withColumn("year", year("event_timestamp"))\
-        .withColumn("month", month("event_timestamp"))\
+    df_partitioned = (
+        df_parsed.withColumn("year", year("event_timestamp"))
+        .withColumn("month", month("event_timestamp"))
         .withColumn("day", dayofmonth("event_timestamp"))
+        .drop("event_timestamp_unix")
+    )
 
     delta_query = (
         df_partitioned.writeStream

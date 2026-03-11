@@ -18,6 +18,7 @@ import pandas as pd
 from pathlib import Path
 from exploration import load_vehicle_positions
 from geopy.distance import geodesic
+import os
 
 
 def add_time_bucket_column(
@@ -50,7 +51,8 @@ def calc_stats_by_time_bucket(df: pd.DataFrame, freq: str = "10min") -> pd.DataF
 
 def save_output(df: pd.DataFrame, file_name: str) -> None:
     root = Path(__file__).resolve().parents[2]
-    output_path = root / 'consumer/mocks/bronze_2026_3_2/outputs/' / file_name
+    mock_folder_name = os.getenv("LOCAL_MOCK_DATA_FOLDER_NAME")
+    output_path = root / 'consumer/mocks' / mock_folder_name / 'outputs/' / file_name
     df.to_parquet(output_path, index=False)
     print("Sample of route time-bucketed stats:\n",df.head())
 

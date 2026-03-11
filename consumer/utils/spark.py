@@ -3,7 +3,6 @@ from delta import configure_spark_with_delta_pip
 from consumer.mocks.mocks import get_mocks_path
 import os
 from typing import Optional
-import pyarrow.parquet as pq
 from pathlib import Path
 
 
@@ -33,13 +32,6 @@ def create_spark_session(use_kafka: bool = False) -> SparkSession:
             )
         )
         spark = builder.getOrCreate()
-        # builder = (
-        #     SparkSession.builder
-        #     .appName(os.getenv("AZURE_APP_NAME"))
-        #     .config("spark.jars.packages", "org.apache.spark:spark-sql-kafka-0-10_2.13:4.0.2")
-        #     .config(f"fs.azure.account.key.{os.getenv('AZURE_STORAGE_ACCOUNT_NAME')}.blob.core.windows.net",
-        #             os.getenv('AZURE_ACCESS_KEY'))
-        # )
     else:
         builder = (
             SparkSession.builder
@@ -79,10 +71,13 @@ def read_batch(
     )
     return df
 
-# root = Path(__file__).resolve().parents[2]
-# print("root", root)
-# parquet_file_path = root / "consumer" / "mocks" / "bronze_2026_3_2" / "raw" / "part-00007-2401bde3-3cd7-4895-93b6-475b2402244a-c000.snappy.parquet"
-# print("parquet_file_path", parquet_file_path)
-#
-# table = pq.read_table(parquet_file_path)
-# print("table.schema", table.schema)
+
+if __name__ == "__main__":
+    spark = create_spark_session(use_kafka=False)
+    root = Path(__file__).resolve().parents[2]
+    print("\nroot", root)
+    parquet_file_path = root / "consumer" / "mocks" / "bronze_2026_03_11" / "raw" / "part-00000-0a277a9b-6407-40b2-acd0-3d5e019a893f.c000.snappy.parquet"
+    print("\nparquet_file_path", parquet_file_path)
+    df = spark.read.parquet(str(parquet_file_path))
+    df.printSchema()
+    df.show(5, truncate=False)

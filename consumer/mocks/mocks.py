@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from dotenv import load_dotenv
 
 
 def get_mocks_path(is_local_path: bool = True) -> str:
@@ -12,7 +13,9 @@ def get_mocks_path(is_local_path: bool = True) -> str:
     """
     if is_local_path:
         project_root = Path(__file__).resolve().parents[2]
-        local_mocks = project_root / "consumer" / "mocks" / "bronze_2026_3_2"
+        load_dotenv(project_root / ".env")
+        mocks_folder_name = os.getenv("LOCAL_MOCK_DATA_FOLDER_NAME")
+        local_mocks = project_root / "consumer" / "mocks" / mocks_folder_name / "raw"
         return str(local_mocks)
     else:
         env_path = os.getenv("MOCK_DATA_PATH")
@@ -20,3 +23,6 @@ def get_mocks_path(is_local_path: bool = True) -> str:
             return env_path
         else:
             raise "Path not found"
+
+if __name__ == "__main__":
+    print("\npath = ", get_mocks_path())
