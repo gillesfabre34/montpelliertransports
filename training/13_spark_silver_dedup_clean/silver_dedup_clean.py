@@ -18,8 +18,9 @@ but implemented here with PySpark and window functions.
 from __future__ import annotations
 
 from typing import Optional
-
-from pyspark.sql import DataFrame, SparkSession
+from consumer.utils.spark import read_batch
+from pyspark.sql import DataFrame
+import pyspark.sql.functions as F
 from consumer.mocks.mocks import get_mocks_path
 from consumer.utils.spark import (
     create_spark_session,
@@ -53,7 +54,7 @@ def deduplicate_keep_last_entity_trip_spark(df: DataFrame) -> DataFrame:
     )
 
 
-def apply_silver_quality_rules(df: DataFrame) -> DataFrame:
+def apply_silver_quality_rules(df_bronze: DataFrame) -> DataFrame:
     """
     Apply basic Silver-level data quality rules, for example:
 
@@ -70,16 +71,30 @@ def apply_silver_quality_rules(df: DataFrame) -> DataFrame:
     Returns:
         Cleaned DataFrame.
     """
-    raise NotImplementedError(
-        "Implement filtering rules for coordinates, speed and key columns."
+    return  (
+        df_bronze
+        .filter(F.col("entity_id").isNotNull())
+        .filter(F.col("event_timestamp").between(F.lit("2026-03-11"), F.current_timestamp()))
+        .withColumn(
+            "speed",
+            F.when(F.col("speed").between(0,100), F.col("speed"))
+        )
+        .withColumn(
+            "longitude",
+            F.when(F.col("longitude").between(0,360), F.col("longitude"))
+        )
+        .withColumn(
+            "latitude",
+            F.when(F.col("latitude").between(-90,90), F.col("latitude"))
+        )
+        .withColumn(
+            "bearing",
+            F.when(F.col("bearing").between(0,360), F.col("bearing"))
+        )
     )
 
 
-def build_silver_dataframe(
-    spark: SparkSession,
-    source_path: Optional[str] = None,
-    fmt: Optional[str] = None,
-) -> DataFrame:
+def build_silver_dataframe() -> DataFrame:
     """
     Helper that:
       1. Reads Bronze data from Parquet/Delta.
@@ -88,29 +103,23 @@ def build_silver_dataframe(
 
     Args:
         spark: SparkSession.
-        source_path: Optional override for Bronze input path.
-        fmt: Optional override for format ("delta" or "parquet").
+        df: bronze dataframe
 
     Returns:
         Silver-level DataFrame (deduplicated + cleaned).
     """
-    raise NotImplementedError(
-        "Implement Silver pipeline: read Bronze → dedup KEEP LAST → "
-        "quality rules."
-    )
+    mocks_path = get_mocks_path()
+    print(f"Using Bronze mocks path: {mocks_path}")
+
+    spark = create_spark_session()
+    df_bronze = read_batch(spark, path=mocks_path, fmt="parquet")
+    df_bronze.printSchema()
+    return apply_silver_quality_rules(df_bronze)
 
 
 if __name__ == "__main__":
-    source_path = get_mocks_path()
-    from os import getenv
-
-    mock_format = (getenv("MOCK_DATA_FORMAT") or "parquet").lower()
-
-    print(f"Building Silver DataFrame from: {source_path} (format={mock_format})")
-
-    spark = create_spark_session(app_name="silver_training")
-    df_silver = build_silver_dataframe(spark, source_path, mock_format)
+    df_silver = build_silver_dataframe()
 
     print("Silver DataFrame sample:")
-    df_silver.show(10, truncate=False)
+    df_silver.show(5, truncate=False)
 
