@@ -1,13 +1,15 @@
 """Spark consumer."""
 
 import os
+import json
+import time
+from threading import Thread
 from pathlib import Path
 
+from consumer.utils.spark import create_spark_session
 from dotenv import load_dotenv
-from pyspark.sql import SparkSession
 from pyspark.sql.types import StructType, StringType, DoubleType, LongType, StructField
 from pyspark.sql.functions import from_json, col, to_timestamp, year, month, dayofmonth
-from delta import configure_spark_with_delta_pip
 
 from .config import (
     KAFKA_BOOTSTRAP_SERVERS,
@@ -32,23 +34,25 @@ MOCK_DATA_FORMAT = (os.getenv("MOCK_DATA_FORMAT") or "parquet").lower()  # "parq
 BRONZE_PATH = f"wasbs://{AZURE_CONTAINER_BRONZE}@{AZURE_STORAGE_ACCOUNT_NAME}.blob.core.windows.net/{AZURE_FOLDER_BRONZE}/"
 CHECKPOINT_PATH = f"wasbs://{AZURE_CONTAINER_BRONZE}@{AZURE_STORAGE_ACCOUNT_NAME}.blob.core.windows.net/{AZURE_FOLDER_CHECKPOINT}/"
 
-def create_spark() -> SparkSession:
-    builder = (
-        SparkSession.builder
-        .appName(AZURE_APP_NAME)
-        # Packages
-        .config("spark.jars.packages","org.apache.spark:spark-sql-kafka-0-10_2.13:4.0.2")
-        # Azure Blob Storage
-        .config(f"fs.azure.account.key.{AZURE_STORAGE_ACCOUNT_NAME}.blob.core.windows.net", AZURE_ACCESS_KEY)
-    )
-    spark = configure_spark_with_delta_pip(builder).getOrCreate()
-    spark.sparkContext.setLogLevel("WARN")
-    return spark
+
+
+def _log_streaming_progress(query) -> None:
+    last_batch_id = None
+    while query.isActive:
+        progress = query.lastProgress
+        if progress and progress.get("batchId") != last_batch_id:
+            last_batch_id = progress.get("batchId")
+            print("\n=== Streaming batch completed ===")
+            print(f"Batch ID: {last_batch_id}")
+            print(f"Rows in batch: {progress.get('numInputRows')}")
+            durations = progress.get("durationMs") or {}
+            print(f"Durations (ms): {json.dumps(durations)}")
+        time.sleep(5)
 
 
 def read_spark():
     print("\n\nSTARTING SPARK\n\n")
-    spark = create_spark()
+    spark = create_spark_session(use_kafka=True)
 
     print(f"\nSpark version {spark.version}\n")
 
@@ -105,7 +109,8 @@ def read_spark():
         .partitionBy("year", "month", "day")
         .start(BRONZE_PATH)
     )
-
+    monitor_thread = Thread(target=_log_streaming_progress, args=(delta_query,), daemon=True)
+    monitor_thread.start()
     delta_query.awaitTermination()
 
 if __name__ == "__main__":

@@ -20,11 +20,9 @@ from __future__ import annotations
 from typing import Optional
 
 from pyspark.sql import DataFrame, SparkSession
-
-from training.12_spark_bronze_batch.bronze_from_mocks import (
+from consumer.mocks.mocks import get_mocks_path
+from consumer.utils.spark import (
     create_spark_session,
-    read_bronze_batch,
-    resolve_bronze_source_path,
 )
 
 
@@ -103,7 +101,7 @@ def build_silver_dataframe(
 
 
 if __name__ == "__main__":
-    source_path = resolve_bronze_source_path()
+    source_path = get_mocks_path()
     from os import getenv
 
     mock_format = (getenv("MOCK_DATA_FORMAT") or "parquet").lower()

@@ -34,67 +34,10 @@ Schema (Bronze-style, simplified)
 """
 
 from __future__ import annotations
-
-import os
-from pathlib import Path
-from typing import Optional
-
 from pyspark.sql import DataFrame, SparkSession
+from consumer.mocks.mocks import get_mocks_path
+from consumer.utils.spark import create_spark_session, read_batch
 
-
-def resolve_bronze_source_path() -> str:
-    """
-    Resolve the source path for Bronze-like mock data.
-
-    Priority:
-    1. `MOCK_DATA_PATH` env var (local or Azure/Blob path).
-    2. Local `consumer/mocks/` folder (project-relative).
-    """
-    env_path = os.getenv("MOCK_DATA_PATH")
-    if env_path:
-        return env_path
-
-    project_root = Path(__file__).resolve().parents[2]
-    local_mocks = project_root / "consumer" / "mocks"
-    return str(local_mocks)
-
-
-def create_spark_session(app_name: str = "bronze_training") -> SparkSession:
-    """
-    Create a local SparkSession for batch processing.
-
-    For this training exercise we do not configure Delta or Kafka; we only
-    need a simple SparkSession capable of reading Parquet/Delta locally or
-    via an already-configured environment (e.g. Azure access).
-    """
-    return (
-        SparkSession.builder.appName(app_name)
-        .getOrCreate()
-    )
-
-
-def read_bronze_batch(
-    spark: SparkSession,
-    path: Optional[str] = None,
-    fmt: Optional[str] = None,
-) -> DataFrame:
-    """
-    Read Bronze-like data in batch mode using Spark.
-
-    Args:
-        spark: SparkSession.
-        path: Optional explicit path. If None, uses resolve_bronze_source_path().
-        fmt: Optional format override. If None, uses MOCK_DATA_FORMAT env var:
-             - "delta" → Spark Delta reader
-             - anything else → Parquet
-
-    Returns:
-        DataFrame with the Bronze schema.
-    """
-    raise NotImplementedError(
-        "Implement Spark batch read from Parquet/Delta using the given path "
-        "and format (delta vs parquet)."
-    )
 
 
 def print_bronze_overview(df: DataFrame) -> None:
@@ -114,14 +57,11 @@ def print_bronze_overview(df: DataFrame) -> None:
 
 
 if __name__ == "__main__":
-    source_path = resolve_bronze_source_path()
-    mock_format = (os.getenv("MOCK_DATA_FORMAT") or "parquet").lower()
-
-    print(f"Using Bronze source path: {source_path}")
-    print(f"Using format: {mock_format}")
+    mocks_path = get_mocks_path()
+    print(f"Using Bronze source path: {mocks_path}")
 
     spark = create_spark_session()
-    df_bronze = read_bronze_batch(spark, path=source_path, fmt=mock_format)
+    df_bronze = read_batch(spark, path=mocks_path, fmt="parquet")
 
     print_bronze_overview(df_bronze)
 
