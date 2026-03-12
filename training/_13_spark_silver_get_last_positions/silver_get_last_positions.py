@@ -21,18 +21,8 @@ import pyspark.sql.functions as F
 from pyspark.sql import DataFrame
 from pyspark.sql.window import Window as W
 
-from consumer.mocks.mocks import get_mocks_path
+from consumer.silver.silver_utils import get_df_bronze
 from consumer.utils.logg import logg
-from consumer.utils.spark import create_spark_session
-from consumer.utils.spark import read_batch
-
-
-def get_df_bronze() -> DataFrame:
-    mocks_path = get_mocks_path()
-    spark = create_spark_session()
-    df_bronze = read_batch(spark, mocks_path, "parquet")
-    logg("df_bronze schema", df_bronze.schema)
-    return df_bronze
 
 
 def get_last_positions(df: DataFrame) -> DataFrame:

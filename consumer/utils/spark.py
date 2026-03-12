@@ -1,9 +1,8 @@
-from pyspark.sql import SparkSession, DataFrame
-from delta import configure_spark_with_delta_pip
-from consumer.mocks.mocks import get_mocks_path
 import os
-from typing import Optional
 from pathlib import Path
+
+from delta import configure_spark_with_delta_pip
+from pyspark.sql import SparkSession
 
 
 def create_spark_session(use_kafka: bool = False) -> SparkSession:
@@ -42,34 +41,6 @@ def create_spark_session(use_kafka: bool = False) -> SparkSession:
         spark = configure_spark_with_delta_pip(builder).getOrCreate()
     spark.sparkContext.setLogLevel("ERROR")
     return spark
-
-
-def read_batch(
-        spark: SparkSession,
-        path: Optional[str] = None,
-        fmt: Optional[str] = "delta",
-) -> DataFrame:
-    """
-    Read data in batch mode using Spark.
-
-    Args:
-        spark: SparkSession.
-        path: Optional explicit path. If None, uses resolve_bronze_source_path().
-        fmt: Optional format override. If None, uses MOCK_DATA_FORMAT env var:
-             - "delta" → Spark Delta reader
-             - anything else → Parquet
-
-    Returns:
-        DataFrame with the Bronze schema.
-    """
-    if path is None:
-        path = get_mocks_path()
-    df = (
-        spark.read
-        .format(fmt)
-        .load(path)
-    )
-    return df
 
 
 if __name__ == "__main__":

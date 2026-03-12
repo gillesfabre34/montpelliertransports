@@ -90,13 +90,6 @@ def build_gold_dataframes(
 
 
 if __name__ == "__main__":
-    from os import getenv
-
-    # Same constraint as above: we use importlib because the package directory
-    # name starts with a digit ("_12_spark_bronze_batch").
-    _bronze_module = importlib.import_module(
-        "training._12_spark_bronze_batch.bronze_from_mocks"
-    )
     create_spark_session = _bronze_module.create_spark_session
     resolve_bronze_source_path = _bronze_module.resolve_bronze_source_path
 

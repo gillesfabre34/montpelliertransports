@@ -10,7 +10,7 @@ import requests
 from confluent_kafka import Producer
 from google.transit import gtfs_realtime_pb2
 
-from config import (
+from producer.config import (
     GTFS_RT_SOURCE,
     GTFS_RT_VEHICLE_POSITIONS_URL,
     KAFKA_BOOTSTRAP_SERVERS,
@@ -27,8 +27,8 @@ logger = logging.getLogger(__name__)
 
 
 def vehicle_to_dict(
-    entity: gtfs_realtime_pb2.FeedEntity,
-    source: str = GTFS_RT_SOURCE,
+        entity: gtfs_realtime_pb2.FeedEntity,
+        source: str = GTFS_RT_SOURCE,
 ) -> Dict[str, Any]:
     """Convert a GTFS-RT vehicle entity to a flat dict for Kafka."""
     if not entity.HasField("vehicle"):
