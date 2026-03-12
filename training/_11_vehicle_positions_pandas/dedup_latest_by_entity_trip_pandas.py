@@ -7,7 +7,7 @@ For each (entity_id, trip_id) pair, keep only the latest record according
 to event_timestamp.
 
 This mirrors the "KEEP LAST" (D1) pattern already implemented in
-`03_deduplication/dedup_keep_last.py`, but applied to the real vehicle
+`_03_deduplication/dedup_keep_last.py`, but applied to the real vehicle
 positions schema using pandas instead of pure Python lists of dicts.
 
 Pattern (SQL-style)
@@ -24,9 +24,12 @@ Here you will implement the equivalent using pandas:
 """
 
 from __future__ import annotations
-from rich import print
+
 from typing import Optional
+
 import pandas as pd
+from rich import print
+
 from exploration import load_vehicle_positions
 
 
@@ -67,7 +70,7 @@ def run_dedup(path: Optional[str] = None) -> pd.DataFrame:
     Returns:
         Deduplicated DataFrame.
     """
-    df = load_vehicle_positions(2026,3,2)
+    df = load_vehicle_positions(2026, 3, 2)
     return get_last_entity_trip_timestamp(df)
 
 
@@ -76,4 +79,3 @@ if __name__ == "__main__":
     main_cols = result[["entity_id", "trip_id", "route_id", "event_timestamp"]]
     print("Sample of deduplicated vehicle positions:")
     print(main_cols.head(50))
-

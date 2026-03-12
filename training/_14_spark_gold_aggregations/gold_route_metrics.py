@@ -29,10 +29,6 @@ from typing import Optional
 
 from pyspark.sql import DataFrame, SparkSession
 
-from training.13_spark_silver_dedup_clean.silver_dedup_clean import (
-    build_silver_dataframe,
-)
-
 
 def compute_route_hourly_speed(df: DataFrame) -> DataFrame:
     """
@@ -72,9 +68,9 @@ def compute_daily_route_activity(df: DataFrame) -> DataFrame:
 
 
 def build_gold_dataframes(
-    spark: SparkSession,
-    source_path: Optional[str] = None,
-    fmt: Optional[str] = None,
+        spark: SparkSession,
+        source_path: Optional[str] = None,
+        fmt: Optional[str] = None,
 ) -> tuple[DataFrame, DataFrame]:
     """
     Helper to build both Gold-level DataFrames from Silver:
@@ -95,10 +91,14 @@ def build_gold_dataframes(
 
 if __name__ == "__main__":
     from os import getenv
-    from training.12_spark_bronze_batch.bronze_from_mocks import (
-        create_spark_session,
-        resolve_bronze_source_path,
+
+    # Same constraint as above: we use importlib because the package directory
+    # name starts with a digit ("_12_spark_bronze_batch").
+    _bronze_module = importlib.import_module(
+        "training._12_spark_bronze_batch.bronze_from_mocks"
     )
+    create_spark_session = _bronze_module.create_spark_session
+    resolve_bronze_source_path = _bronze_module.resolve_bronze_source_path
 
     source_path = resolve_bronze_source_path()
     mock_format = (getenv("MOCK_DATA_FORMAT") or "parquet").lower()
@@ -113,4 +113,3 @@ if __name__ == "__main__":
 
     print("Daily route activity sample:")
     df_daily.show(10, truncate=False)
-
