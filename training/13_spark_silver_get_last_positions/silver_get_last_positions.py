@@ -17,19 +17,26 @@ but implemented here with PySpark and window functions.
 
 from __future__ import annotations
 
-from typing import Optional
+from consumer.utils.logg import logg
 from consumer.utils.spark import read_batch
 from pyspark.sql import DataFrame
 import pyspark.sql.functions as F
+from pyspark.sql.window import Window as W
 from consumer.mocks.mocks import get_mocks_path
-from consumer.utils.spark import (
-    create_spark_session,
-)
+from consumer.utils.spark import create_spark_session
 
 
-def deduplicate_keep_last_entity_trip_spark(df: DataFrame) -> DataFrame:
+def get_df_bronze() -> DataFrame:
+    mocks_path = get_mocks_path()
+    spark = create_spark_session()
+    df_bronze = read_batch(spark, mocks_path, "parquet")
+    logg("df_bronze schema", df_bronze.schema)
+    return df_bronze
+
+
+def get_last_positions(df: DataFrame) -> DataFrame:
     """
-    Deduplicate vehicle positions by (entity_id, trip_id) using a Spark
+    Get last vehicle positions by (entity_id, trip_id) using a Spark
     window function:
 
         ROW_NUMBER() OVER (
@@ -48,13 +55,19 @@ def deduplicate_keep_last_entity_trip_spark(df: DataFrame) -> DataFrame:
     Returns:
         Deduplicated DataFrame (one row per (entity_id, trip_id)).
     """
-    raise NotImplementedError(
-        "Implement D1 KEEP LAST per (entity_id, trip_id) using a Spark "
-        "window and row_number."
-    )
+    window_spec = W.partitionBy("entity_id", "trip_id").orderBy(F.col("event_timestamp").desc())
+    df = (df
+          .withColumn("event_rank", F.row_number()
+          .over(window_spec))
+          .filter(F.col("event_rank") == 1)
+          .drop("event_rank")
+      )
+    logg("df values\n")
+    df.show(2)
+    return df
 
 
-def apply_silver_quality_rules(df_bronze: DataFrame) -> DataFrame:
+def build_silver_dataframe(df_bronze: DataFrame) -> DataFrame:
     """
     Apply basic Silver-level data quality rules, for example:
 
@@ -71,7 +84,7 @@ def apply_silver_quality_rules(df_bronze: DataFrame) -> DataFrame:
     Returns:
         Cleaned DataFrame.
     """
-    return  (
+    return (
         df_bronze
         .filter(F.col("entity_id").isNotNull())
         .filter(F.col("event_timestamp").between(F.lit("2026-03-11"), F.current_timestamp()))
@@ -94,32 +107,10 @@ def apply_silver_quality_rules(df_bronze: DataFrame) -> DataFrame:
     )
 
 
-def build_silver_dataframe() -> DataFrame:
-    """
-    Helper that:
-      1. Reads Bronze data from Parquet/Delta.
-      2. Applies deduplicate_keep_last_entity_trip_spark().
-      3. Applies apply_silver_quality_rules().
-
-    Args:
-        spark: SparkSession.
-        df: bronze dataframe
-
-    Returns:
-        Silver-level DataFrame (deduplicated + cleaned).
-    """
-    mocks_path = get_mocks_path()
-    print(f"Using Bronze mocks path: {mocks_path}")
-
-    spark = create_spark_session()
-    df_bronze = read_batch(spark, path=mocks_path, fmt="parquet")
-    df_bronze.printSchema()
-    return apply_silver_quality_rules(df_bronze)
-
-
 if __name__ == "__main__":
-    df_silver = build_silver_dataframe()
-
-    print("Silver DataFrame sample:")
+    df_bronze = get_df_bronze()
+    df_silver = get_last_positions(df_bronze)
+    # df_silver = build_silver_dataframe(df_bronze)
+    logg("Silver DataFrame sample:")
     df_silver.show(5, truncate=False)
 
