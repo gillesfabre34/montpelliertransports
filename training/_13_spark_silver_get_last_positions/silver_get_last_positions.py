@@ -22,7 +22,7 @@ from pyspark.sql import DataFrame
 from pyspark.sql.window import Window as W
 
 from consumer.silver.silver_utils import get_df_bronze
-from consumer.utils.logg import logg
+from utils.tools import logg
 
 
 def get_last_positions(df: DataFrame) -> DataFrame:

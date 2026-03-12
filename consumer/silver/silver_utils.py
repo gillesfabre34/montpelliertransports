@@ -6,16 +6,15 @@ from pyspark.sql.window import Window as W
 
 from consumer.bronze.bronze_utils import read_batch
 from consumer.mocks.mocks import get_mocks_path
-from consumer.utils.logg import logg
 from consumer.utils.spark import create_spark_session
+from utils.tools import logg
 
 
 def get_df_bronze() -> DataFrame:
+    logg("Getting df_bronze...")
     mocks_path = get_mocks_path()
     spark = create_spark_session()
-    df_bronze = read_batch(spark, mocks_path, "parquet")
-    logg("df_bronze schema", df_bronze.schema)
-    return df_bronze
+    return read_batch(spark, mocks_path, "parquet")
 
 
 def get_last_positions(df: DataFrame) -> DataFrame:

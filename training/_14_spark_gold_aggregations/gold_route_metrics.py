@@ -25,12 +25,37 @@ Silver DataFrame with at least:
 
 from __future__ import annotations
 
-from typing import Optional
+import pyspark.sql.functions as F
+from pyspark.sql import DataFrame
+from rich import print
 
-from pyspark.sql import DataFrame, SparkSession
+from consumer.gold.gold_utils import get_df_silver
+from utils.tools import logg, sort_by_natural_order
 
 
-def compute_route_hourly_speed(df: DataFrame) -> DataFrame:
+def calc_stats_by_route(df_silver: DataFrame) -> DataFrame:
+    """
+    Compute route metrics.
+
+    Suggested fields:
+        - route_id
+        - avg_speed: average of speed
+        - vehicles_count: distinct count of entity_id
+    """
+    df = (
+        df_silver
+        .groupby("route_id")
+        .agg(
+            F.round(F.avg("speed"), 1).alias("speed_avg"),
+            F.count_distinct("entity_id").alias("nb_vehicles")
+        )
+        .orderBy(F.col("speed_avg").desc())
+    )
+    print(df)
+    return df
+
+
+def calc_stats_by_route_and_hour(df_silver: DataFrame) -> DataFrame:
     """
     Compute hourly route metrics.
 
@@ -44,9 +69,22 @@ def compute_route_hourly_speed(df: DataFrame) -> DataFrame:
     Hint:
         - use functions like date_trunc("hour", ...), groupBy, agg, countDistinct.
     """
-    raise NotImplementedError(
-        "Implement hourly route metrics grouped by (route_id, event_hour)."
+    df = (
+        df_silver
+        .withColumn("date", F.to_date("event_timestamp"))
+        .groupby("date", F.hour("event_timestamp").alias("hour"), "route_id")
+        .agg(
+            F.round(F.avg("speed"), 1).alias("speed_avg"),
+            F.count_distinct("entity_id").alias("nb_vehicles")
+        )
+        .orderBy(
+            F.col("date"),
+            F.col("hour"),
+            *sort_by_natural_order(F.col("route_id"))
+        )
     )
+    print(df)
+    return df
 
 
 def compute_daily_route_activity(df: DataFrame) -> DataFrame:
@@ -67,42 +105,29 @@ def compute_daily_route_activity(df: DataFrame) -> DataFrame:
     )
 
 
-def build_gold_dataframes(
-        spark: SparkSession,
-        source_path: Optional[str] = None,
-        fmt: Optional[str] = None,
-) -> tuple[DataFrame, DataFrame]:
+def build_gold_dataframes(df_silver: DataFrame) -> tuple[DataFrame, DataFrame]:
     """
     Helper to build both Gold-level DataFrames from Silver:
       - hourly metrics
       - daily activity
-
-    Args:
-        spark: SparkSession.
-        source_path: Optional override for Bronze input path (used by the
-                     underlying Silver builder).
-        fmt: Optional format override ("delta" or "parquet").
     """
-    raise NotImplementedError(
-        "Implement Gold pipeline: build Silver from Bronze, then derive "
-        "hourly and daily route metrics."
-    )
+    df_hourly = df_silver.withColumn("hour", F.hour("event_timestamp"))
+    df_daily = df_silver.withColumn("day", F.to_date("event_timestamp"))
+    return df_hourly, df_daily
 
 
 if __name__ == "__main__":
-    create_spark_session = _bronze_module.create_spark_session
-    resolve_bronze_source_path = _bronze_module.resolve_bronze_source_path
+    df_silver: DataFrame = get_df_silver()
+    logg("Stats by route")
+    stats_by_route = calc_stats_by_route_and_hour(df_silver)
+    # stats_by_route = calc_stats_by_route(df_silver)
+    stats_by_route.show(50)
 
-    source_path = resolve_bronze_source_path()
-    mock_format = (getenv("MOCK_DATA_FORMAT") or "parquet").lower()
-
-    print(f"Building Gold metrics from Silver built on: {source_path} (format={mock_format})")
-
-    spark = create_spark_session(app_name="gold_training")
-    df_hourly, df_daily = build_gold_dataframes(spark, source_path, mock_format)
-
-    print("Hourly route metrics sample:")
-    df_hourly.show(10, truncate=False)
-
-    print("Daily route activity sample:")
-    df_daily.show(10, truncate=False)
+    # logg(f"Building Gold metrics from Silver")
+    # df_hourly, df_daily = build_gold_dataframes(df_silver)
+    #
+    # logg("Hourly route metrics sample:")
+    # df_hourly.show(5, truncate=False)
+    #
+    # logg("Daily route activity sample:")
+    # df_daily.show(5, truncate=False)
