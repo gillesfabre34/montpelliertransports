@@ -20,4 +20,13 @@ EXPECTED_OUTPUT = [3, 1, 5, 7]
 
 def remove_duplicates_keep_order(items: list[int]) -> list[int]:
     """Return the list with duplicates removed, first occurrence kept."""
-    pass
+    seen = set()
+    output = []
+    for nb in items:
+        if nb not in seen:
+            seen.add(nb)
+            output.append(nb)
+    return list(output)
+
+
+print(remove_duplicates_keep_order(EXAMPLE_INPUT))
