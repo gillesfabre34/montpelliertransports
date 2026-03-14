@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from collections import Counter
+
 """
 LEVEL 4 — Data Engineering Style Challenges
 
@@ -21,4 +25,11 @@ EXPECTED_OUTPUT = "C"
 
 def first_non_repeating_event(events: list[str]) -> str | None:
     """Return the first event that appears exactly once in the list."""
-    pass
+    counts = Counter(events)
+    for e in events:
+        if counts[e] == 1:
+            return e
+    return None
+
+
+print(first_non_repeating_event(EXAMPLE_INPUT))
