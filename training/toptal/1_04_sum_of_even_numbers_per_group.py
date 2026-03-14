@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 """
 LEVEL 1 — Basic Python Data Manipulation
 
@@ -24,15 +26,24 @@ EXAMPLE_INPUT = [
     ("u2", 14),
     ("u3", 8),
     ("u1", 12),
+    ("u4", 7),
 ]
 
 EXPECTED_OUTPUT = {
     "u1": 22,  # 10 + 12
     "u2": 14,  # 14
-    "u3": 8,   # 8
+    "u3": 8,  # 8
+    "u4": 0
 }
 
 
 def sum_even_per_group(data: list[tuple[str, int]]) -> dict[str, int]:
     """Return the sum of even values per user_id."""
-    pass
+    output = defaultdict(int)
+    for (user_id, value) in data:
+        if value % 2 == 0:
+            output[user_id] += value
+    return dict(output)
+
+
+print(sum_even_per_group(EXAMPLE_INPUT))
