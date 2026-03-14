@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 """
 LEVEL 1 — Basic Python Data Manipulation
 
@@ -25,4 +27,11 @@ EXPECTED_OUTPUT = {
 
 def count_word_occurrences(words: list[str]) -> dict[str, int]:
     """Return a mapping of each word to its occurrence count."""
-    pass
+    output = defaultdict(int)
+    for w in words:
+        output[w] += 1
+
+    return dict(output)
+
+
+print(count_word_occurrences(EXAMPLE_INPUT))

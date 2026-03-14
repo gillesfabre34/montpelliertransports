@@ -21,4 +21,13 @@ EXPECTED_OUTPUT = ["a", "b", "r", "c", "d"]
 
 def unique_characters_in_order(s: str) -> list[str]:
     """Return unique characters in order of first appearance."""
-    pass
+    chars = set()
+    output = []
+    for char in s:
+        if char not in chars:
+            chars.add(char)
+            output.append(char)
+    return output
+
+
+print(unique_characters_in_order(EXAMPLE_INPUT))
