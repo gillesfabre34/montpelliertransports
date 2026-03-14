@@ -1,3 +1,5 @@
+from heapq import heappush, heappushpop
+
 """
 LEVEL 3 — Top K Problems
 
@@ -22,4 +24,13 @@ EXPECTED_OUTPUT = [14, 9, 8]
 
 def top_k_largest(nums: list[int], k: int) -> list[int]:
     """Return the k largest numbers in descending order, using a heap."""
-    pass
+    heaps = []
+    for n in nums:
+        if len(heaps) < k:
+            heappush(heaps, n)
+        elif n > heaps[0]:
+            heappushpop(heaps, n)
+    return sorted(heaps, reverse=True)
+
+
+print(top_k_largest(EXAMPLE_NUMS, 3))
