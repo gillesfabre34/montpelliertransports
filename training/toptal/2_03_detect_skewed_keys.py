@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 """
 LEVEL 2 — Data Transformation
 
@@ -30,7 +32,13 @@ EXPECTED_OUTPUT = ["A"]
 
 
 def detect_skewed_keys(
-    data: list[tuple[str, int]], threshold_pct: float = 0.4
+        data: list[tuple[str, int]], threshold_pct: float = 0.4
 ) -> list[str]:
     """Return keys whose count exceeds threshold_pct of total records."""
-    pass
+    counts = defaultdict(int)
+    for key, value in data:
+        counts[key] += 1
+    return [key for key, count in counts.items() if count > len(data) * threshold_pct]
+
+
+print(detect_skewed_keys(EXAMPLE_INPUT, 0.4))
