@@ -1,3 +1,8 @@
+from __future__ import annotations
+from __future__ import annotations
+
+from collections import defaultdict
+
 """
 LEVEL 2 — Data Transformation
 
@@ -27,7 +32,20 @@ EXPECTED_OUTPUT = {"Alice": 80, "Bob": 20}
 
 
 def total_spending_per_user_name(
-    users: list[dict], orders: list[dict]
+        users: list[dict], orders: list[dict]
 ) -> dict[str, int | float]:
     """Return total spending per user name (key = name, value = total amount)."""
-    pass
+    output = defaultdict(int)
+    users_dict: dict[str, str] = {u["id"]: u["name"] for u in users}
+    # users_dict = defaultdict(str)
+    # for u in users:
+    #     users_dict[u["id"]] = u["name"]
+
+    for o in orders:
+        user_name = users_dict[o["user_id"]]
+        output[user_name] += o["amount"]
+
+    return dict(output)
+
+
+print(total_spending_per_user_name(EXAMPLE_USERS, EXAMPLE_ORDERS))
