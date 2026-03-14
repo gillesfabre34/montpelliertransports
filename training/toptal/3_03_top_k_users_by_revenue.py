@@ -1,3 +1,6 @@
+from collections import defaultdict
+from heapq import heappush, heappushpop
+
 """
 LEVEL 3 — Top K Problems
 
@@ -34,7 +37,19 @@ EXPECTED_OUTPUT = [
 
 
 def top_k_users_by_revenue(
-    transactions: list[tuple[str, int]], k: int
+        transactions: list[tuple[str, int]], k: int
 ) -> list[tuple[str, int]]:
     """Return top k users by total revenue as (username, total) descending."""
-    pass
+    users = defaultdict(int)
+    for name, value in transactions:
+        users[name] += value
+    heaps = []
+    for name, value in users.items():
+        if len(heaps) < k:
+            heappush(heaps, (value, name))
+        elif value > heaps[0][0]:
+            heappushpop(heaps, (value, name))
+    return sorted([(name, value) for value, name in heaps], key=lambda x: x[1], reverse=True)
+
+
+print(top_k_users_by_revenue(EXAMPLE_TRANSACTIONS, EXAMPLE_K))
