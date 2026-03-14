@@ -22,4 +22,15 @@ EXPECTED_OUTPUT = [3, 5, 7]
 
 def sliding_window_average(nums: list[float], window_size: int) -> list[float]:
     """Return the average of each sliding window of size window_size."""
-    pass
+    if len(nums) < window_size:
+        return []
+    s = sum(nums[0:window_size])
+    result = [s / window_size]
+    for i, n in enumerate(nums[window_size: len(nums)], window_size):
+        s += n
+        s -= nums[i - window_size]
+        result.append(s / window_size)
+    return result
+
+
+print(sliding_window_average(EXAMPLE_NUMS, EXAMPLE_WINDOW_SIZE))
