@@ -1,3 +1,6 @@
+from collections import Counter
+from heapq import heappush, heappushpop
+
 """
 LEVEL 3 — Top K Problems
 
@@ -21,4 +24,14 @@ EXPECTED_OUTPUT = [1, 2]
 
 def top_k_frequent(nums: list[int], k: int) -> list[int]:
     """Return the k most frequent elements."""
-    pass
+    counts = Counter(nums)
+    heaps = []
+    for key, v in counts.items():
+        if len(heaps) < k:
+            heappush(heaps, (v, key))
+        elif v > heaps[0][0]:
+            heappushpop(heaps, (v, key))
+    return [v for key, v in heaps]
+
+
+print(top_k_frequent(EXAMPLE_NUMS, EXAMPLE_K))
