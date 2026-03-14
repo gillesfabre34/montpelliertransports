@@ -3,6 +3,8 @@ from pathlib import Path
 
 from delta import configure_spark_with_delta_pip
 from pyspark.sql import SparkSession
+from pyspark.sql import functions as F
+from pyspark.sql.column import Column
 
 
 def create_spark_session(use_kafka: bool = False) -> SparkSession:
@@ -41,6 +43,26 @@ def create_spark_session(use_kafka: bool = False) -> SparkSession:
         spark = configure_spark_with_delta_pip(builder).getOrCreate()
     spark.sparkContext.setLogLevel("ERROR")
     return spark
+
+
+def haversine_distance(lat1: Column, lon1: Column, lat2: Column, lon2: Column) -> Column:
+    """
+    Returns distance between 2 points GPS (lat/lon) in meters.
+    Returns NULL if lat1 or lon1 is NULL.
+    """
+    R = 6371000  # rayon de la Terre en mètres
+    lat1_rad = F.radians(lat1)
+    lon1_rad = F.radians(lon1)
+    lat2_rad = F.radians(lat2)
+    lon2_rad = F.radians(lon2)
+
+    dlat = lat2_rad - lat1_rad
+    dlon = lon2_rad - lon1_rad
+
+    a = F.pow(F.sin(dlat / 2), 2) + F.cos(lat1_rad) * F.cos(lat2_rad) * F.pow(F.sin(dlon / 2), 2)
+    c = 2 * F.asin(F.sqrt(a))
+
+    return F.when(lat1.isNull() | lon1.isNull(), None).otherwise(R * c)
 
 
 if __name__ == "__main__":

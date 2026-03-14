@@ -27,9 +27,10 @@ from __future__ import annotations
 
 import pyspark.sql.functions as F
 from pyspark.sql import DataFrame
-from rich import print
+from pyspark.sql.window import Window as W
 
 from consumer.gold.gold_utils import get_df_silver
+from consumer.utils.spark import haversine_distance
 from utils.tools import logg, sort_by_natural_order
 
 
@@ -51,7 +52,6 @@ def calc_stats_by_route(df_silver: DataFrame) -> DataFrame:
         )
         .orderBy(F.col("speed_avg").desc())
     )
-    print(df)
     return df
 
 
@@ -69,7 +69,7 @@ def calc_stats_by_route_and_hour(df_silver: DataFrame) -> DataFrame:
     Hint:
         - use functions like date_trunc("hour", ...), groupBy, agg, countDistinct.
     """
-    df = (
+    return (
         df_silver
         .withColumn("date", F.to_date("event_timestamp"))
         .groupby("date", F.hour("event_timestamp").alias("hour"), "route_id")
@@ -83,26 +83,60 @@ def calc_stats_by_route_and_hour(df_silver: DataFrame) -> DataFrame:
             *sort_by_natural_order(F.col("route_id"))
         )
     )
-    print(df)
-    return df
 
 
-def compute_daily_route_activity(df: DataFrame) -> DataFrame:
+def find_stops(df_silver: DataFrame) -> DataFrame:
     """
-    Compute daily route activity metrics.
-
-    Suggested fields:
-        - event_date: date extracted from event_timestamp
-        - route_id
-        - points_count
-        - vehicles_count
-
-    This can be combined later with Top-K logic to find the busiest routes
-    per day.
+    Find the terminus of the different routes
     """
-    raise NotImplementedError(
-        "Implement daily route activity grouped by (event_date, route_id)."
+    window = W.partitionBy("entity_id", "route_id").orderBy("event_timestamp")
+    df = (
+        df_silver
+        .select(["entity_id", "route_id", "event_timestamp", "latitude", "longitude", "speed"])
+        .withColumn("latitude", F.round("latitude", 5))
+        .withColumn("longitude", F.round("longitude", 5))
+        # .filter((F.col("route_id") == "14") | (F.col("route_id") == "16"))
+        .orderBy("entity_id", "route_id", "event_timestamp")
+        .withColumn("is_stop", (F.col("speed") == 0).cast('int'))
+        .withColumn("was_stopped", (F.lag("is_stop").over(window) == 1).cast('int'))
+        .withColumn("will_move", (F.lead("is_stop").over(window) == 0).cast('int'))
+        .withColumn("restarted",
+                    ((F.col("is_stop") == 0) & (F.col("was_stopped") == 1) & (F.col("will_move") == 1)).cast('int'))
+        .withColumn("stop_number", F.sum("restarted").over(window.rowsBetween(W.unboundedPreceding, 0)))
+        .filter(F.col("speed") == 0)
+        .drop("event_timestamp", "is_stop", "speed", "was_stopped", "will_move", "restarted")
+        .groupBy("entity_id", "route_id", "stop_number")
+        .agg(F.round(F.avg("latitude"), 5).alias("latitude"), F.round(F.avg("longitude"), 5).alias("longitude"))
+        .drop("entity_id", "stop_number")
+        .sort("latitude", "longitude")
     )
+    w_order_by_coors = W.partitionBy("route_id").orderBy("latitude", "longitude")
+    df = (
+        df
+        .withColumn("previous_latitude", F.lag("latitude").over(w_order_by_coors))
+        .withColumn("previous_longitude", F.lag("longitude").over(w_order_by_coors))
+        .withColumn(
+            "distance",
+            F.round(
+                haversine_distance(
+                    F.col("latitude"),
+                    F.col("longitude"),
+                    F.col("previous_latitude"),
+                    F.col("previous_longitude"),
+                )
+            )
+        )
+        .withColumn("is_not_same_stop", ((F.col("distance") >= 100) & (F.isnotnull("previous_latitude"))).cast('int'))
+        .withColumn("stop_number",
+                    F.sum("is_not_same_stop").over(w_order_by_coors.rowsBetween(W.unboundedPreceding, 0)))
+        .groupBy("route_id", "stop_number")
+        .agg(F.round(F.avg("latitude"), 5).alias("latitude"), F.round(F.avg("longitude"), 5).alias("longitude"))
+        .withColumn("stop_number", F.concat(F.col("route_id"), F.lit("-"), F.col("stop_number")).alias("stop_number"))
+        .orderBy("route_id", "stop_number")
+    )
+
+    logg("Added cols")
+    return df
 
 
 def build_gold_dataframes(df_silver: DataFrame) -> tuple[DataFrame, DataFrame]:
@@ -119,9 +153,10 @@ def build_gold_dataframes(df_silver: DataFrame) -> tuple[DataFrame, DataFrame]:
 if __name__ == "__main__":
     df_silver: DataFrame = get_df_silver()
     logg("Stats by route")
-    stats_by_route = calc_stats_by_route_and_hour(df_silver)
-    # stats_by_route = calc_stats_by_route(df_silver)
-    stats_by_route.show(50)
+    stats = find_stops(df_silver)
+    # stats = calc_stats_by_route_and_hour(df_silver)
+    # stats = calc_stats_by_route(df_silver)
+    stats.show(50)
 
     # logg(f"Building Gold metrics from Silver")
     # df_hourly, df_daily = build_gold_dataframes(df_silver)
