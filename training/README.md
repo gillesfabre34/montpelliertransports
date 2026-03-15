@@ -25,14 +25,29 @@ Exercises are grouped by **topic** in numbered subdirectories (in progression or
 | **13_spark_silver_dedup_clean** | Spark Silver: D1 dedup + basic quality rules | `silver_dedup_clean.py` | ❌ |
 | **14_spark_gold_aggregations** | Spark Gold: hourly and daily route metrics for BI | `gold_route_metrics.py` | ❌ |
 | **15_airflow_pipeline_design** | Airflow DAG design (Bronze → Silver → Gold) | `vehicle_positions_dag_design.py` | ❌ |
+| **toptal/** | Toptal-style technical interview exercises (Python + data) | Levels 1–5, see below | ✅ |
 
-**Status:** ✅ done (core exercises in the directory implemented) · ❌ to do (at least one exercise not started).  
+**Status:** ✅ done (core exercises in the directory implemented) · ❌ to do (at least one exercise not started).
+
+### Toptal-style exercises (`toptal/`)
+
+Short, self-contained exercises for data engineering interviews. Each file has instructions, example I/O, a function signature to implement, a `print` to verify, and corner-case tests. See `toptal/README.md` for the full list.
+
+| Level | Focus |
+|-------|--------|
+| **1** | Basic Python: lists, dicts, sets, averages, Counter, defaultdict |
+| **2** | Data transformation: joins, grouping, sorting |
+| **3** | Top-K: heapq, streaming thinking |
+| **4** | Data engineering: first non-repeating, sliding window, duplicate events in time window |
+| **5** | Interview gaps: `itertools.groupby`, `deque`, generators (`yield`), `bisect`, `dict.get`/`setdefault`, `min`/`max(key=)`, `any`/`all`, `reduce`, `zip`, multi-criteria sort, `next(..., default)`, log parsing |
+
 The core joins (hash join, enrichment) in 02_joins are done; `broadcast_join` is optional (Spark-style optimization).
 
 To run a script from the project root:  
 `python training/01_fundamentals/filter_blacklist.py`  
 For **06_skew** (imports between files in the same folder), run from the root:  
-`python training/06_skew/salt_events.py` or `python training/06_skew/top_k_after_salt.py` — the script’s directory is on the path, so local imports work.
+`python training/06_skew/salt_events.py` or `python training/06_skew/top_k_after_salt.py` — the script’s directory is on the path, so local imports work.  
+For **toptal** exercises: `python training/toptal/5_01_groupby_total_per_date_user.py` (or any `N_MM_*.py`); run tests with `pytest training/toptal/5_*.py -v` once implemented.
 
 ---
 

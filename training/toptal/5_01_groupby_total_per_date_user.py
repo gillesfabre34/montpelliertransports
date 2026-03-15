@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+from itertools import groupby
+
+from rich import print
+
 """
 LEVEL 5 — itertools, deque, generators, bisect, dict/sequence tricks
 
@@ -34,14 +38,30 @@ EXPECTED_OUTPUT = {
 
 
 def total_per_date_user(
-    data: list[tuple[str, str, int | float]]
+        data: list[tuple[str, str, int | float]]
 ) -> dict[tuple[str, str], int | float]:
     """Return total amount per (date, user_id) using groupby. Input must be sorted by (date, user_id)."""
-    ...
+    result = {}
+    for (date, user_id), group in groupby(data, key=lambda x: (x[0], x[1])):
+        total = sum(value for _, _, value in group)
+        result[(date, user_id)] = total
+    return result
 
 
 print(total_per_date_user(EXAMPLE_INPUT))
 
+
+# def total_per_date_user_without_itertools(
+#         data: list[tuple[str, str, int | float]]
+# ) -> dict[tuple[str, str], int | float]:
+#     """Return total amount per (date, user_id) using groupby. Input must be sorted by (date, user_id)."""
+#     result: defaultdict[tuple[str, str], int | float] = defaultdict(int)
+#     for date, user_id, value in data:
+#         result[(date, user_id)] += value
+#     return dict(result)
+#
+#
+# print(total_per_date_user_without_itertools(EXAMPLE_INPUT))
 
 # ----------------------
 # Corner case tests
