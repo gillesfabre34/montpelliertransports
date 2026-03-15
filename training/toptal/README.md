@@ -46,9 +46,29 @@ Focus: performance, large datasets, streaming
 | 2 | `4_02_sliding_window_average.py` | Sliding window average, O(n) |
 | 3 | `4_03_duplicate_events_within_time_window.py` | Users with two events within a time window |
 
+## Level 5 — Python built-ins and standard library (interview gaps)
+
+Focus: itertools.groupby, deque, generators (yield), bisect, dict.get/setdefault, min/max(key=), any/all, reduce, zip, sorted multi-criteria, next(iterator, default), string parsing
+
+| # | File | Description |
+|---|------|-------------|
+| 1 | `5_01_groupby_total_per_date_user.py` | Total amount per (date, user_id) with itertools.groupby |
+| 2 | `5_02_sliding_window_with_deque.py` | Sliding window average using deque(maxlen=) |
+| 3 | `5_03_csv_chunks_generator.py` | Yield chunks of lines (generator) |
+| 4 | `5_04_events_in_time_window_bisect.py` | Count events in [t-T, t] using bisect |
+| 5 | `5_05_merge_dicts_sum_values.py` | Merge two dicts, sum values (get/setdefault) |
+| 6 | `5_06_min_score_user_with_key.py` | User with minimum score using min(..., key=) |
+| 7 | `5_07_all_records_match_rules.py` | All records match all rules (any/all) |
+| 8 | `5_08_product_with_reduce.py` | Product of list with functools.reduce |
+| 9 | `5_09_merge_dicts_with_reduce.py` | Merge list of dicts (sum per key) with reduce |
+| 10 | `5_10_parse_log_line.py` | Parse log line into dict (split/strip) |
+| 11 | `5_11_dict_from_zip.py` | Build dict from keys and values with zip() |
+| 12 | `5_12_sort_multi_criteria.py` | Sort by score desc, date asc, name asc |
+| 13 | `5_13_first_error_event_next.py` | First event with type "ERROR" using next(..., default) |
+
 ## How to use
 
 1. Open the exercise file.
 2. Read the problem, example, and constraints.
 3. Implement the function (signature is given).
-4. Test with the example input and add your own tests.
+4. Test with the example input (print at the end of the file) and run the corner-case test functions (e.g. with pytest or by calling them).
