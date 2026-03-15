@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from collections import deque
+from statistics import mean
+
 """
 LEVEL 5 — itertools, deque, generators, bisect, dict/sequence tricks
 
@@ -24,10 +27,18 @@ EXPECTED_OUTPUT = [3.0, 5.0, 7.0]
 
 
 def sliding_window_average_deque(
-    nums: list[float], window_size: int
+        nums: list[float], window_size: int
 ) -> list[float]:
     """Return the average of each sliding window using a deque(maxlen=window_size)."""
-    ...
+    if len(nums) < window_size:
+        return []
+    dq = deque(nums[0:window_size])
+    result = [mean(dq)]
+    for i in range(1, len(nums) - window_size + 1):
+        dq.append(nums[i + window_size - 1])
+        dq.popleft()
+        result.append(mean(dq))
+    return result
 
 
 print(sliding_window_average_deque(EXAMPLE_NUMS, EXAMPLE_WINDOW))
