@@ -1,4 +1,5 @@
 from __future__ import annotations
+from collections import defaultdict
 
 """
 LEVEL 5 — itertools, deque, generators, bisect, dict/sequence tricks
@@ -25,7 +26,12 @@ EXPECTED_OUTPUT = {"a": 1, "b": 5, "c": 4}
 
 def merge_dicts_sum_values(d1: dict[str, int | float], d2: dict[str, int | float]) -> dict[str, int | float]:
     """Merge d1 and d2; for common keys, sum the values. Use .get() or .setdefault()."""
-    ...
+    result: dict[str, int] = defaultdict(int)
+    for k, v in d1.items():
+        result[k] = result.setdefault(k, 0) + v
+    for k, v in d2.items():
+        result[k] = result.setdefault(k, 0) + v
+    return dict(result)
 
 
 print(merge_dicts_sum_values(EXAMPLE_D1, EXAMPLE_D2))
