@@ -24,7 +24,7 @@ EXPECTED_OUTPUT = {"a": 1, "b": 2, "c": 3}
 
 def dict_from_zip(keys: list[str], values: list[int]) -> dict[str, int]:
     """Return dict mapping keys[i] to values[i]. Use zip()."""
-    ...
+    return dict(zip(keys, values))
 
 
 print(dict_from_zip(EXAMPLE_KEYS, EXAMPLE_VALUES))
