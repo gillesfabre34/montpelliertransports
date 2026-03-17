@@ -35,10 +35,10 @@ EXPECTED_OUTPUT = [
 
 
 def sort_multi_criteria(
-    data: list[tuple[str, int, str]]
+        data: list[tuple[str, int, str]]
 ) -> list[tuple[str, int, str]]:
     """Sort by score desc, then date asc, then name asc. Use sorted(..., key=...)."""
-    ...
+    return sorted(data, key=lambda x: (-x[1], x[2], x[0]))
 
 
 print(sort_multi_criteria(EXAMPLE_INPUT))
