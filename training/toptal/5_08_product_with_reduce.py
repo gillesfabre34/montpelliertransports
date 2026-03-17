@@ -23,7 +23,7 @@ EXPECTED_OUTPUT = 24
 
 def product_with_reduce(nums: list[int | float]) -> int | float:
     """Return the product of nums; return 1 if empty. Use reduce."""
-    ...
+    return reduce(lambda x, y: x * y, nums) if len(nums) > 0 else 1
 
 
 print(product_with_reduce(EXAMPLE_INPUT))
