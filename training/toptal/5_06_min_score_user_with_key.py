@@ -1,4 +1,5 @@
 from __future__ import annotations
+from utils.tools import logg
 
 """
 LEVEL 5 — itertools, deque, generators, bisect, dict/sequence tricks
@@ -24,7 +25,11 @@ EXPECTED_OUTPUT = "carol"  # min score 30; tie between bob and carol -> max user
 
 def min_score_user(scores: list[tuple[str, int | float]]) -> str:
     """Return user_id with minimum score; on tie, return the largest user_id. Use min(..., key=...)."""
-    ...
+    minimum = min(scores, key=lambda x: x[1])
+    logg('minimum', minimum)
+    name = max([v[0] for v in scores if v[1] == minimum[1]])
+    logg('name', name)
+    return name
 
 
 print(min_score_user(EXAMPLE_INPUT))
