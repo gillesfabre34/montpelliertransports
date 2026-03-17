@@ -1,4 +1,7 @@
 from __future__ import annotations
+from collections import defaultdict
+from datetime import datetime
+from utils.tools import logg
 
 """
 LEVEL 5 — itertools, deque, generators, bisect, dict/sequence tricks
@@ -31,7 +34,15 @@ EXPECTED_OUTPUT = {
 
 def parse_log_line(line: str) -> dict[str, str]:
     """Parse log line into dict with keys date, time, user_id, level, message. Use split/strip."""
-    ...
+    date_str, user_id, level, message = [part.strip() for part in line.split('|')]
+    date, time = date_str.split(' ')
+    return {
+        "date": date,
+        "time": time,
+        "user_id": user_id,
+        "level": level,
+        "message": message
+    }
 
 
 print(parse_log_line(EXAMPLE_LINE))
