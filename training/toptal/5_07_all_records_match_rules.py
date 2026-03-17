@@ -1,5 +1,5 @@
 from __future__ import annotations
-
+from utils.tools import logg
 from typing import Callable
 
 """
@@ -31,16 +31,18 @@ EXAMPLE_RECORDS = [
 ]
 EXAMPLE_RULES = [
     ("a", lambda v: v > 0),
-    ("b", lambda v: v < 10),
+    ("b", lambda v: v < 3),
 ]
 EXPECTED_OUTPUT = True
 
 
 def all_records_match_rules(
-    records: list[dict], rules: list[tuple[str, Callable]]
+        records: list[dict], rules: list[tuple[str, Callable]]
 ) -> bool:
     """Return True iff every record satisfies every rule (key -> predicate(value)). Use any/all."""
-    ...
+    return all(
+        [all([(key in rec and f(rec[key])) for key, f in rules]) for rec in records]
+    )
 
 
 print(all_records_match_rules(EXAMPLE_RECORDS, EXAMPLE_RULES))
@@ -52,7 +54,7 @@ print(all_records_match_rules(EXAMPLE_RECORDS, EXAMPLE_RULES))
 
 
 def test_example():
-    assert all_records_match_rules(EXAMPLE_RECORDS, EXAMPLE_RULES) is True
+    assert all_records_match_rules(EXAMPLE_RECORDS, EXAMPLE_RULES) is False
 
 
 def test_one_record_fails():
