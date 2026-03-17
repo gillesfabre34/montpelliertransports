@@ -1,4 +1,5 @@
 from __future__ import annotations
+from collections.abc import Iterable, Iterator
 
 """
 LEVEL 5 — itertools, deque, generators, bisect, dict/sequence tricks
@@ -28,7 +29,18 @@ EXPECTED_OUTPUT = {"type": "ERROR", "id": 2}
 
 def first_error_event(events: list[dict]) -> dict | None:
     """Return the first event with type == 'ERROR', or None. Use next(..., default)."""
-    ...
+    return next((event for event in events if event['type'] == 'ERROR'), None)
+
+
+# def first_error_event(events: list[dict]) -> dict | None:
+#     """Return the first event with type == 'ERROR', or None. Use next(..., default)."""
+#
+#     def it(events: Iterable[dict]) -> Iterator:
+#         for event in events:
+#             if event["type"] == 'ERROR':
+#                 yield event
+#
+#     return next(it(events), None)
 
 
 print(first_error_event(EXAMPLE_EVENTS))
