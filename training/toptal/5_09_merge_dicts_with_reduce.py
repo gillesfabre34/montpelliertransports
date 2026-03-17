@@ -1,5 +1,5 @@
 from __future__ import annotations
-
+from collections import defaultdict
 from functools import reduce
 
 """
@@ -28,10 +28,19 @@ EXPECTED_OUTPUT = {"a": 11, "b": 5, "c": 4}
 
 
 def merge_dicts_with_reduce(
-    dicts: list[dict[str, int | float]]
+        dicts: list[dict[str, int | float]]
 ) -> dict[str, int | float]:
     """Merge all dicts: for each key, sum values. Use reduce."""
-    ...
+    if len(dicts) == 0:
+        return {}
+    return reduce(merge_dicts, dicts)
+
+
+def merge_dicts(x: dict, y: dict) -> dict:
+    result = defaultdict(int, x)
+    for key, v in y.items():
+        result[key] += v
+    return dict(result)
 
 
 print(merge_dicts_with_reduce(EXAMPLE_INPUT))
